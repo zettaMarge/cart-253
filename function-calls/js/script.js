@@ -1,24 +1,26 @@
 /**
- * Title of Project
- * Author Name
+ * Austrian Pride
+ * Marjorie Dudemaine
  * 
- * HOW EMBARRASSING! I HAVE NO DESCRIPTION OF MY PROJECT!
- * PLEASE REMOVE A GRADE FROM MY WORK IF IT'S GRADED!
+ * A representation of the Austrian flag on a canvas using the p5 tool
  */
 
 "use strict";
 
 /**
- * OH LOOK I DIDN'T DESCRIBE SETUP!!
+ * initializes a canvas on the page
 */
 function setup() {
-
+    createCanvas(640, 480);
 }
 
-
 /**
- * OOPS I DIDN'T DESCRIBE WHAT MY DRAW DOES!
+ * draws the Austrian flag on the canvas
 */
 function draw() {
+    //red background
+    background(255, 75, 75);
 
+    //white stripe
+    rect(0, 160, 640, 160);
 }
