@@ -1,10 +1,9 @@
 /**
- * My House
- * Pippin Barr
+ * Luigi's Mansion Low% 
+ * Marjorie Dudemaine
  * 
- * Draws a house with shapes.
- * 
- * Disclaimer: Not actually my house.
+ * A representation of the result of getting the lowest threshold of
+ * money in Luigi's Mansion (2001) on a canvas using the p5 tool
  * 
  * Uses:
  * p5.js
@@ -19,71 +18,142 @@ function setup() {
 }
 
 /**
- * Draws a house
+ * Draws the whole picture on the canvas
  */
 function draw() {
-    // The sky
-    background(150, 200, 250);
+	drawSky();
+	drawCloud();
+	drawGround();
+	drawMansion();
+	drawGate();
+}
 
-    // A cloud
-    push();
-    noStroke();
-    // Note: using a single number for a colour will be greyscale
-    // (As if you used the same number for R, G, and B)
-    // So this is white:
-    fill(255);
-    ellipse(100, 100, 100, 100);
-    ellipse(180, 80, 100, 100);
-    ellipse(160, 120, 60, 60);
-    ellipse(190, 130, 60, 60);
-    ellipse(220, 120, 60, 60);
-    pop();
+/**
+ * Draws the sky (nice and blue)
+ */
+function drawSky() {
+	background(150, 200, 250);
+}
 
-    // The ground
-    push();
-    noStroke();
-    fill(200);
-    rect(0, 400, 640, 480);
-    pop();
+/**
+ * Draws a fluffy white cloud
+ */
+function drawCloud() {
+	push();
+	noStroke();
+	fill(255);
+	ellipse(100, 100, 100, 100);
+	ellipse(180, 80, 100, 100);
+	ellipse(160, 120, 60, 60);
+	ellipse(190, 130, 60, 60);
+	ellipse(220, 120, 60, 60);
+	pop();
+}
 
-    // The main body of the house
-    push();
-    noStroke();
-    fill(250, 250, 200);
-    rect(200, 240, 280, 180);
-    pop();
+/**
+ * Draws the nice, lush yard, with a path leading to the mansion
+ */
+function drawGround() {
+	// The ground
+	push();
+	noStroke();
+	fill(81, 176, 94);
+	rect(0, 300, 640, 480);
+	pop();
 
-    // The roof
-    push();
-    noStroke();
-    // You can also write colors in hex code in quote marks
-    fill("#dc143c");
-    triangle(180, 240, 340, 120, 500, 240);
-    pop();
+	// the front path
+	push();
+	noStroke();
+	fill(196, 219, 94);
+	rect(275, 380, 90, 480);
+	pop();
 
-    // A window
+	// the back path
+	push();
+	noStroke();
+	fill(196, 219, 94);
+	triangle(275, 380, 320, 300, 365, 380);
+	pop();
+}
+
+/**
+ * Draws the Low% mansion
+ * spoilers: it's a tent
+ */
+function drawMansion() {
+	drawBody();
+	drawRoof();
+	drawWindow();
+	drawDoor();
+}
+
+/**
+ * Draws the main body of the mansion
+ */
+function drawBody() {
+	push();
+	noStroke();
+	fill(48, 128, 52);
+	rect(220, 200, 240, 140);
+	pop();
+}
+
+/**
+ * Draws the roof of the mansion
+ */
+function drawRoof() {
+	push();
+	noStroke();
+	fill("#308034");
+	triangle(220, 200, 340, 120, 460, 200);
+	pop();
+}
+
+/**
+ * Draws a window on the mansion
+ */
+function drawWindow() {
+    //the frame
+	push();
+	stroke("dimgray");
+	strokeWeight(5);
+	fill(182, 211, 240);
+	rect(360, 230, 60, 60);
+	pop();
+
+    //the crosshairs
     push();
-    // You can also write colour names from the CSS standard in quotes
-    // https://www.w3.org/wiki/CSS/Properties/color/keywords
-    stroke("deeppink");
+    stroke("dimgray");
     strokeWeight(5);
-    fill("blanchedalmond");
-    rect(220, 260, 80, 80);
+    fill("dimgray");
+    rect(389, 230, 2, 60);
+    rect(359, 260, 60, 2);
     pop();
+}
 
-    // An entrace
+/**
+ * Draws the mansion's door
+ */
+function drawDoor() {
+	push();
+	noStroke();
+	fill("#474747");
+	triangle(300, 340, 320, 240, 340, 340);
+	pop();
+}
 
-    // The door
-    push();
-    noStroke();
-    fill(0, 128, 0);
-    rect(320, 300, 80, 120);
-    pop();
-
-    // The doorknob
-    push();
-    noStroke();
-    fill(255, 215, 0);
-    ellipse(340, 360, 10, 10);
-    pop();
+/** 
+ * draws the gate in fron of the mansion
+*/
+function drawGate() {
+	push();
+	noStroke();
+	fill("#7e857f");
+	//left side
+	rect(0, 330, 240, 115);
+	rect(190, 280, 50, 60);
+	//right side
+	rect(400, 330, 240, 115);
+	rect(400, 280, 50, 60);
+	pop();
 }
