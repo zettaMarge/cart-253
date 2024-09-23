@@ -1,5 +1,5 @@
 # Assignment 2: Art Jam
-## TITLE
+## A Sneak Peak at the Show
 
 ### Description
 desc
