@@ -2,7 +2,7 @@
  * A Sneak Peak at the Show
  * Marjorie Dudemaine
  * 
- * desc
+ * A simple game of Match The Shapes, featuring my adorable baby boy clown :)
  */
 
 "use strict";
@@ -91,106 +91,140 @@ const clownBoy = {
     isDispleased: false,
 };
 
-const flowers = {
-    center: {
-        fill: "#ffd585",
-        size: 30,
-    },
-    petal: {
-        fill: "#f57399",
-        size: 25,
-        lengthModifier: 20,
-    },
-    leaf: {
-        fill:"#5cb567",
-        size: 15,
-        lengthModifier: 30,
-    },
-    timer: 3,
-    timerStart: 3,
-    isSpinning: false,
-};
-
-const flower1 = {
-    x: undefined,
-    y: undefined,
-    petalAngleA: 0,
-    petalAngleB: 1.5707,
-    petalAngleC: 3.1415,
-    petalAngleD: 4.7123,
-    leafAngle: 3.9269,
-    spinRate: 0.05,
-};
-
-const flower2 = {
-    x: undefined,
-    y: undefined,
-    petalAngleA: 0.7853,
-    petalAngleB: 2.3561,
-    petalAngleC: 3.9269,
-    petalAngleD: 5.4977,
-    leafAngle: 4.7123,
-    spinRate: 0.065
-};
-
-const flower3 = {
-    x: undefined,
-    y: undefined,
-    petalAngleA: 0,
-    petalAngleB: 1.5707,
-    petalAngleC: 3.1415,
-    petalAngleD: 4.7123,
-    leafAngle: 5.4977,
-    spinRate: 0.04
-};
-
-const shapeSpace = {
+const shapeHoleSpace = {
     xMin: undefined,
     xMax: undefined,
     yMin: undefined,
-    yMax: undefined
+    yMax: undefined,
+    minDiff: 80,
 };
 
-const square = {
-    object: {
+const squareObject = {
+    moving: {
         x: 0,
         y: 0,
-        size: 0,
-        fill: 0,
+        size: 72,
+        fill: "#75d180",
         isDisappear: false,
+        isMoving: false,
+        isMisplaced: false,
     },
     hole: {
         x: undefined,
         y: undefined,
-        size: 0,
-        isOverlap: false,
+        size: 75,
     },
 };
 
-const circle = {
-    object: {
+const circleObject = {
+    moving: {
         x: 0,
         y: 0,
-        size: 0,
-        fill: 0,
+        size: 77,
+        fill: "#f5a45d",
         isDisappear: false,
+        isMoving: false,
+        isMisplaced: false,
     },
     hole: {
         x: undefined,
         y: undefined,
-        size: 0,
-        isOverlap: false,
+        size: 80,
     },
 }
 
-//rectMode(CENTER);
+const triangleObject = {
+    moving: {
+        xCenter: 0,
+        yCenter: 0,
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 0,
+        x3: 0,
+        y3: 0,
+        distCenterPoint: 37,
+        fill: "#f78dac",
+        isDisappear: false,
+        isMoving: false,
+        isMisplaced: false,
+    },
+    hole: {
+        xCenter: undefined,
+        yCenter: undefined,
+        x1: undefined,
+        y1: undefined,
+        x2: undefined,
+        y2: undefined,
+        x3: undefined,
+        y3: undefined,
+        distCenterPoint: 40,
+    },
+};
+
+const reloadBtn = {
+    x: undefined,
+    y: undefined,
+    w: 144,
+    h: 72,
+    fill: {
+        base: 255,
+        hover: "#8be8f0",
+    },
+    stroke: "#227d85",
+    txtSize: 30,
+};
+
+class Flower {
+    constructor(x, y, petalAngleA, petalAngleB, petalAngleC, petalAngleD, leafAngle, spinRate) {
+        this.x = x;
+        this.y = y;
+        this.petalAngleA = petalAngleA;
+        this.petalAngleB = petalAngleB;
+        this.petalAngleC = petalAngleC;
+        this.petalAngleD = petalAngleD;
+        this.leafAngle = leafAngle;
+        this.spinRate = spinRate;
+    }
+
+    fill = {
+        center: "#ffd585",
+        petal: "#f57399",
+        leaf: "#5cb567",
+    };
+
+    size = {
+        center: 30,
+        petal: 25,
+        leaf: 15,
+    };
+    
+    lengthModifier = {
+        petal: 20,
+        leaf: 30,
+    };
+}
+
+let flower1;
+let flower2;
+let flower3;
+
+const maxTimer = 3;
+let flowerTimer = maxTimer;
 
 /**
- * initializes the canvas and values based on canvas size
+ * sets up the canvas
  */
 function setup() {
     createCanvas(600, 600);
+    rectMode(CENTER);
+    initValues();
+}
 
+/**
+ * initializes some values that depend on the canvas' size
+ */
+function initValues() {
     clownBoy.hood.base.x = width/2;
     clownBoy.hood.base.y = 2 * height/3;
 
@@ -206,14 +240,28 @@ function setup() {
     clownBoy.mouth.bottom.yBase = 2 * height/3 + 50;
     clownBoy.mouth.hole.y = 2 * height/3 + 35;
 
-    flower1.x = width/5;
-    flower1.y = height/2;
+    flower1 = new Flower(width/5, height/2, 0, 1.5707, 3.1415, 4.7123, 3.9269, 0.05);
+    flower2 = new Flower(width/2.5, height/3, 0.7853, 2.3561, 3.9269, 5.4977, 4.7123, 0.065);
+    flower3 = new Flower(4 * width/5, 2 * height/3, 0, 1.5707, 3.1415, 4.7123, 5.4977, 0.04);
 
-    flower2.x = width/2.5;
-    flower2.y = height/3;
+    shapeHoleSpace.xMin = width/10;
+    shapeHoleSpace.xMax = 9 * width/10;
+    shapeHoleSpace.yMin = height/10;
+    shapeHoleSpace.yMax = height/3;
 
-    flower3.x = 4 * width/5;
-    flower3.y = 2 * height/3;
+    squareObject.moving.x = width/10;
+    squareObject.moving.y = 9 * height/10;
+
+    circleObject.moving.x = width/2;
+    circleObject.moving.y = 9 * height/10;
+
+    triangleObject.moving.xCenter = 9 * height/10;
+    triangleObject.moving.yCenter = 9 * height/10;
+
+    reloadBtn.x = width/2;
+    reloadBtn.y = 9 * height/10;
+
+    initShapeHoles();
 }
 
 /**
@@ -223,35 +271,41 @@ function draw() {
     background(200);
 
     setClownLookWhere();
-
     drawHead();
     drawMovingEyes();
     drawMovingMouth();
 
+    //holes
+    drawSquare(true);
+    drawCircle(true);
+    drawTriangle(true);
+    //shapes
+    drawSquare(false);
+    drawCircle(false);
+    drawTriangle(false);
+
     if (clownBoy.isHappy) {
-        //boost flower opacity from 0?
+        //boost flower opacity from 0 TODO?
         drawFlower(flower1);
         drawFlower(flower2);
         drawFlower(flower3);
         rotateFlowers();
 
-        if (frameCount % 60 == 0 && flowers.timer > 0) {
-            --flowers.timer;
+        if (!squareObject.moving.isDisappear || !circleObject.moving.isDisappear || !triangleObject.moving.isDisappear) {
+            if (frameCount % 60 == 0 && flowerTimer > 0) {
+                --flowerTimer;
+            }
+    
+            if (flowerTimer == 0) {
+                clownBoy.isHappy = false;
+                flowerTimer = maxTimer;
+                //reset flower opacity to 0 TODO?
+            }
         }
-
-        if (flowers.timer == 0) {
-            clownBoy.isHappy = false;
-            flowers.timer = flowers.timerStart;
-            //reset flower opacity to 0?
+        else {
+            drawResetBtn();
         }
     }
-
-    //draw holes
-    //draw/move shapes
-
-    //for distances, TODO remove
-    ellipse(9 * width/10, height/3, 25);
-    ellipse(width/10, height/10, 25);
 }
 
 /**
@@ -814,48 +868,51 @@ function drawTeeth() {
 
 /**
  * draws a flower
- * @param {*} flower specific flower object
+ * @param {Flower} flower specific flower object
  */
 function drawFlower(flower) {
     //leaf
     push();
-    strokeWeight(flowers.leaf.size);
-    stroke(flowers.leaf.fill);
-    const xL2 = flower.x + sin(flower.leafAngle) * flowers.leaf.lengthModifier;
-    const yL2 = flower.y + cos(flower.leafAngle) * flowers.leaf.lengthModifier;
+    strokeWeight(flower.size.leaf);
+    stroke(flower.fill.leaf);
+    const xL2 = flower.x + sin(flower.leafAngle) * flower.lengthModifier.leaf;
+    const yL2 = flower.y + cos(flower.leafAngle) * flower.lengthModifier.leaf;
     line(flower.x, flower.y, xL2, yL2);
     pop();
 
-    //petals, A to D clockwise from the top
+    //petals
     push();
-    strokeWeight(flowers.petal.size);
-    stroke(flowers.petal.fill);
+    strokeWeight(flower.size.petal);
+    stroke(flower.fill.petal);
 
-    const xA2 = flower.x + sin(flower.petalAngleA) * flowers.petal.lengthModifier;
-    const yA2 = flower.y + cos(flower.petalAngleA) * flowers.petal.lengthModifier;
+    const xA2 = flower.x + sin(flower.petalAngleA) * flower.lengthModifier.petal;
+    const yA2 = flower.y + cos(flower.petalAngleA) * flower.lengthModifier.petal;
     line(flower.x, flower.y, xA2, yA2);
 
-    const xB2 = flower.x + sin(flower.petalAngleB) * flowers.petal.lengthModifier;
-    const yB2 = flower.y + cos(flower.petalAngleB) * flowers.petal.lengthModifier;
+    const xB2 = flower.x + sin(flower.petalAngleB) * flower.lengthModifier.petal;
+    const yB2 = flower.y + cos(flower.petalAngleB) * flower.lengthModifier.petal;
     line(flower.x, flower.y, xB2, yB2);
 
-    const xC2 = flower.x + sin(flower.petalAngleC) * flowers.petal.lengthModifier;
-    const yC2 = flower.y + cos(flower.petalAngleC) * flowers.petal.lengthModifier;
+    const xC2 = flower.x + sin(flower.petalAngleC) * flower.lengthModifier.petal;
+    const yC2 = flower.y + cos(flower.petalAngleC) * flower.lengthModifier.petal;
     line(flower.x, flower.y, xC2, yC2);
 
-    const xD2 = flower.x + sin(flower.petalAngleD) * flowers.petal.lengthModifier;
-    const yD2 = flower.y + cos(flower.petalAngleD) * flowers.petal.lengthModifier;
+    const xD2 = flower.x + sin(flower.petalAngleD) * flower.lengthModifier.petal;
+    const yD2 = flower.y + cos(flower.petalAngleD) * flower.lengthModifier.petal;
     line(flower.x, flower.y, xD2, yD2);
     pop();
 
     //center
     push();
     noStroke();
-    fill(flowers.center.fill);
-    ellipse(flower.x, flower.y, flowers.center.size);
+    fill(flower.fill.center);
+    ellipse(flower.x, flower.y, flower.size.center);
     pop();
 }
 
+/**
+ * rotates the angle of each flower's petals and leaf, clockwise
+ */
 function rotateFlowers() {
     flower1.petalAngleA -= flower1.spinRate;
     flower1.petalAngleB -= flower1.spinRate;
@@ -874,4 +931,399 @@ function rotateFlowers() {
     flower3.petalAngleC -= flower3.spinRate;
     flower3.petalAngleD -= flower3.spinRate;
     flower3.leafAngle -= flower3.spinRate;
+}
+
+/**
+ * initializes each hole's center coordinates with a random value,
+ * making sure none overlap
+ */
+function initShapeHoles() {
+    squareObject.hole.x = random(shapeHoleSpace.xMin, shapeHoleSpace.xMax);
+    squareObject.hole.y = random(shapeHoleSpace.yMin, shapeHoleSpace.yMax);
+
+    for(;;) {
+        circleObject.hole.x = random(shapeHoleSpace.xMin, shapeHoleSpace.xMax);
+        circleObject.hole.y = random(shapeHoleSpace.yMin, shapeHoleSpace.yMax);
+
+        let dx = abs(circleObject.hole.x - squareObject.hole.x);
+        let dy = abs(circleObject.hole.y - squareObject.hole.y);
+
+        if (dx > shapeHoleSpace.minDiff || dy > shapeHoleSpace.minDiff) {
+            break;
+        }
+    }
+
+    for(;;) {
+        triangleObject.hole.xCenter = random(shapeHoleSpace.xMin, shapeHoleSpace.xMax);
+        triangleObject.hole.yCenter = random(shapeHoleSpace.yMin, shapeHoleSpace.yMax);
+
+        triangleObject.hole.x1 = triangleObject.hole.xCenter;
+        triangleObject.hole.y1 = triangleObject.hole.yCenter - triangleObject.hole.distCenterPoint;
+
+        triangleObject.hole.x2 = triangleObject.hole.xCenter - triangleObject.hole.distCenterPoint;
+        triangleObject.hole.y2 = triangleObject.hole.yCenter + triangleObject.hole.distCenterPoint;
+
+        triangleObject.hole.x3 = triangleObject.hole.xCenter + triangleObject.hole.distCenterPoint;
+        triangleObject.hole.y3 = triangleObject.hole.yCenter + triangleObject.hole.distCenterPoint;
+
+        let dSquarex = abs(triangleObject.hole.xCenter - squareObject.hole.x);
+        let dSquarey = abs(triangleObject.hole.yCenter - squareObject.hole.y);
+        let squareFarEnough = dSquarex > shapeHoleSpace.minDiff || dSquarey > shapeHoleSpace.minDiff;
+
+        let isP1Overlap = isCirclePointOverlap(
+            circleObject.hole.x,
+            circleObject.hole.y,
+            triangleObject.hole.x1,
+            triangleObject.hole.y1,
+            circleObject.hole.size/2
+        );
+        let isP2Overlap = isCirclePointOverlap(
+            circleObject.hole.x,
+            circleObject.hole.y,
+            triangleObject.hole.x2,
+            triangleObject.hole.y2,
+            circleObject.hole.size/2
+        );
+        let isP3Overlap = isCirclePointOverlap(
+            circleObject.hole.x,
+            circleObject.hole.y,
+            triangleObject.hole.x3,
+            triangleObject.hole.y3,
+            circleObject.hole.size/2
+        );
+        let dCircleX = abs(triangleObject.hole.xCenter - circleObject.hole.x);
+        let dCircleY = abs(triangleObject.hole.yCenter - squareObject.hole.y);
+        //make sure that the minimum distance is respected AND none of the points are within the circle
+        let circleFarEnough = (dCircleX > shapeHoleSpace.minDiff || dCircleY > shapeHoleSpace.minDiff) && !isP1Overlap && !isP2Overlap && !isP3Overlap;
+
+        if (squareFarEnough && circleFarEnough) {
+            break;
+        }
+    }
+}
+
+/**
+ * callback event when a mouse button gets pressed down
+ * checks if the mouse pointer overlaps a shape in order to move it
+ * @param {MouseEvent} evt 
+ * @returns 
+ */
+function mousePressed(evt) {
+    //left click
+    if (evt.button == 0) {
+        if (isTrianglePointOverlap(triangleObject.moving, mouseX, mouseY) && !triangleObject.moving.isDisappear) {
+            triangleObject.moving.isMoving = true;
+            return;
+        }
+        
+        if (
+            isCirclePointOverlap(circleObject.moving.x, circleObject.moving.y, mouseX, mouseY, circleObject.moving.size/2)
+            && !circleObject.moving.isDisappear
+        ) {
+            circleObject.moving.isMoving = true;
+            return;
+        }
+
+        if (
+            isRectPointOverlap(squareObject.moving, mouseX, mouseY, squareObject.moving.size, squareObject.moving.size) 
+            && !squareObject.moving.isDisappear
+        ) {
+            squareObject.moving.isMoving = true;
+            return;
+        }
+    }
+}
+
+/**
+ * callback event when a mouse button gets released
+ * checks if the shapes overlap holes, changing the clown's mood if a shape is over the right hole or not
+ * @param {MouseEvent} evt 
+ */
+function mouseReleased(evt) {
+    //left click
+    if (evt.button == 0) {    
+        if (triangleObject.moving.isMoving) {
+            if (isTrianglePointOverlap(triangleObject.hole, mouseX, mouseY)) { 
+                triangleObject.moving.isMisplaced = false;
+                triangleObject.moving.isDisappear = true;
+                clownBoy.isHappy = true;
+            }
+            else if (
+                isCirclePointOverlap(circleObject.hole.x, circleObject.hole.y, mouseX, mouseY, circleObject.hole.size/2)
+                || isRectPointOverlap(squareObject.hole, mouseX, mouseY, squareObject.hole.size, squareObject.hole.size)
+            ) {
+                triangleObject.moving.isMisplaced = true;
+            }
+            else {
+                triangleObject.moving.isMisplaced = false;
+            }
+
+            triangleObject.moving.isMoving = false;
+        }
+        
+        if (circleObject.moving.isMoving) {
+            if (isCirclePointOverlap(circleObject.hole.x, circleObject.hole.y, mouseX, mouseY, circleObject.hole.size/2)) {
+                circleObject.moving.isMisplaced = false;
+                circleObject.moving.isDisappear = true;
+                clownBoy.isHappy = true;
+            }
+            else if (
+                isTrianglePointOverlap(triangleObject.hole, mouseX, mouseY) 
+                || isRectPointOverlap(squareObject.hole, mouseX, mouseY, squareObject.hole.size, squareObject.hole.size)
+            ) {
+                circleObject.moving.isMisplaced = true;
+            }
+            else {
+                circleObject.moving.isMisplaced = false;
+            }
+            
+            circleObject.moving.isMoving = false;
+        }
+
+        if (squareObject.moving.isMoving) {
+            if (isRectPointOverlap(squareObject.hole, mouseX, mouseY, squareObject.hole.size, squareObject.hole.size)) {
+                squareObject.moving.isMisplaced = false;
+                squareObject.moving.isDisappear = true;
+                clownBoy.isHappy = true;
+            }
+            else if (
+                isTrianglePointOverlap(triangleObject.hole, mouseX, mouseY) 
+                || isCirclePointOverlap(circleObject.hole.x, circleObject.hole.y, mouseX, mouseY, circleObject.hole.size/2)
+            ) {
+                squareObject.moving.isMisplaced = true;
+            }
+            else {
+                squareObject.moving.isMisplaced = false;
+            }    
+
+            squareObject.moving.isMoving = false;
+        }
+
+        if (triangleObject.moving.isMisplaced || circleObject.moving.isMisplaced || squareObject.moving.isMisplaced) {
+            clownBoy.isDispleased = true;
+        }
+        else {
+            clownBoy.isDispleased = false;
+        }
+    }
+}
+
+/**
+ * callback when a mouse button gets pressed then released
+ * checks if the reload button gets pressed
+ * @param {MouseEvent} evt 
+ */
+function mouseClicked(evt) {
+    //left click
+    if (evt.button == 0 && squareObject.moving.isDisappear && circleObject.moving.isDisappear && triangleObject.moving.isDisappear) {
+        if (isRectPointOverlap(reloadBtn, mouseX, mouseY, reloadBtn.w, reloadBtn.h)) {
+            location.reload();
+        }
+    }
+}
+
+/**
+ * returns if a point overlaps a specific triangle
+ * @param {*} tri which triangle
+ * @param {Number} xP x coordinate of the point
+ * @param {Number} yP y coordinate of the point
+ * @returns
+ */
+function isTrianglePointOverlap(tri, xP, yP) {
+    let triangleArea = getTriangleArea(
+        tri.x1, tri.y1,
+        tri.x2, tri.y2,
+        tri.x3, tri.y3
+    );
+    let A1 = getTriangleArea(
+        xP, yP,
+        tri.x2, tri.y2,
+        tri.x3, tri.y3
+    );
+    let A2 = getTriangleArea(
+        tri.x1, tri.y1,
+        xP, yP,
+        tri.x3, tri.y3
+    );
+    let A3 = getTriangleArea(
+        tri.x1, tri.y1,
+        tri.x2, tri.y2,
+        xP, yP,
+    );
+
+    return abs(A1 + A2 + A3 - triangleArea) < 0.001;
+}
+
+/**
+ * returns the area of a triangle
+ * @param {Number} x1 x coordinate of the first point
+ * @param {Number} y1 y coordinate of the first point
+ * @param {Number} x2 x coordinate of the second point
+ * @param {Number} y2 y coordinate of the second point
+ * @param {Number} x3 x coordinate of the third point
+ * @param {Number} y3 y coordinate of the third point
+ * @returns 
+ */
+function getTriangleArea(x1, y1, x2, y2, x3, y3) {
+    return abs((
+        x1 * (y2 - y3)
+        + x2 * (y3 - y1)
+        + x3 * (y1 - y2)
+    ) / 2.0);
+}
+
+/**
+ * returns if a point overlaps a specific circle
+ * @param {Number} xCircle x coordinate of the circle
+ * @param {Number} yCircle y coordinate of the circle
+ * @param {Number} xP x coordinate of the point
+ * @param {Number} yP y coordinate of the point
+ * @param {Number} radius radius of the circle
+ * @returns 
+ */
+function isCirclePointOverlap(xCircle, yCircle, xP, yP, radius) {
+    let d = dist(xCircle, yCircle, xP, yP);
+    return d <= radius;
+}
+
+/**
+ * returns if a point overlaps a specific rectangle
+ * @param {*} rect which rectangle
+ * @param {Number} xP x coordinate of the point
+ * @param {Number} yP y coordinate of the point
+ * @returns 
+ */
+function isRectPointOverlap(rect, xP, yP, w, h) {
+    let xMin = rect.x - w/2;
+    let xMax = rect.x + w/2;
+    let yMin = rect.y - h/2;
+    let yMax = rect.y + h/2;
+
+    return (xP >= xMin && xP <= xMax && yP >= yMin && yP <= yMax);
+}
+
+//TODO reduce shape size to 0 when IsDisappear
+/**
+ * draws a square
+ * @param {boolean} isHole if it's the square hole
+ */
+function drawSquare(isHole) {
+    push();
+    
+    if (isHole) {    
+        fill(0);
+        noStroke();
+        rect(squareObject.hole.x, squareObject.hole.y, squareObject.hole.size);
+    }
+    else {
+        if (squareObject.moving.isMoving) {
+            squareObject.moving.x = mouseX;
+            squareObject.moving.y = mouseY;
+        }
+
+        fill(squareObject.moving.fill);
+        stroke(255);
+        rect(squareObject.moving.x, squareObject.moving.y, squareObject.moving.size);
+    }
+
+    pop();
+}
+
+/**
+ * draws a circle
+ * @param {boolean} isHole if it's the circle hole
+ */
+function drawCircle(isHole) {
+    push();
+    
+    if (isHole) {
+        fill(0);
+        noStroke();
+        ellipse(circleObject.hole.x, circleObject.hole.y, circleObject.hole.size);
+    }
+    else {
+        if (circleObject.moving.isMoving) {
+            circleObject.moving.x = mouseX;
+            circleObject.moving.y = mouseY;
+        }
+
+        fill(circleObject.moving.fill);
+        stroke(255);
+        ellipse(circleObject.moving.x, circleObject.moving.y, circleObject.moving.size);
+    }
+
+    pop();
+}
+
+/**
+ * draws a triangle
+ * @param {boolean} isHole if it's the triangle hole
+ */
+function drawTriangle(isHole) {
+    push();
+
+    if (isHole) {
+        fill(0);
+        noStroke();
+        triangle(
+            triangleObject.hole.x1, triangleObject.hole.y1,
+            triangleObject.hole.x2, triangleObject.hole.y2,
+            triangleObject.hole.x3, triangleObject.hole.y3
+        );
+    }
+    else {
+        if (triangleObject.moving.isMoving) {
+            triangleObject.moving.xCenter = mouseX;
+            triangleObject.moving.yCenter = mouseY;
+        }
+
+        triangleObject.moving.x1 = triangleObject.moving.xCenter;
+        triangleObject.moving.y1 = triangleObject.moving.yCenter - triangleObject.moving.distCenterPoint;
+
+        triangleObject.moving.x2 = triangleObject.moving.xCenter - triangleObject.moving.distCenterPoint;
+        triangleObject.moving.y2 = triangleObject.moving.yCenter + triangleObject.moving.distCenterPoint;
+
+        triangleObject.moving.x3 = triangleObject.moving.xCenter + triangleObject.moving.distCenterPoint;
+        triangleObject.moving.y3 = triangleObject.moving.yCenter + triangleObject.moving.distCenterPoint;
+
+        fill(triangleObject.moving.fill);
+        stroke(255);
+        triangle(
+            triangleObject.moving.x1, triangleObject.moving.y1,
+            triangleObject.moving.x2, triangleObject.moving.y2,
+            triangleObject.moving.x3, triangleObject.moving.y3
+        );
+    }
+
+    pop();
+}
+
+/**
+ * draws the reset button
+ */
+function drawResetBtn() {
+    let isHover = isRectPointOverlap(reloadBtn, mouseX, mouseY, reloadBtn.w, reloadBtn.h);
+
+    if (isHover) {
+        cursor(HAND);
+    }
+    else {
+        cursor(ARROW);
+    }
+
+    push();
+    fill(isHover ? reloadBtn.fill.hover : reloadBtn.fill.base);
+    stroke(reloadBtn.stroke);
+    strokeWeight(7.5);
+    rect(reloadBtn.x, reloadBtn.y, reloadBtn.w, reloadBtn.h);
+    pop();
+
+    push();
+    textAlign(CENTER, CENTER);
+    fill(reloadBtn.stroke);
+    stroke(reloadBtn.stroke);
+    strokeWeight(2.5);
+    textSize(reloadBtn.txtSize);
+    text("RELOAD", reloadBtn.x, reloadBtn.y);
+    pop();
 }
