@@ -7,3 +7,6 @@ Somewhat inspired by that one Tiktok where every object fits in the square hole.
 
 ### Credits
 This project uses [p5.js](https://p5js.org).
+
+### Attribution
+Rotation code based on Pippin's [Running Circle](https://editor.p5js.org/pippinbarr/sketches/daalbYwlG) example.
