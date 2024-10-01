@@ -8,6 +8,412 @@
 
 "use strict";
 
+
+/**
+ * abstract class for the shapes
+ */
+class ShapeBase {
+    /**
+     * constructor
+     * @param {Number} x x coordinate of center
+     * @param {Number} y y coordinate of center
+     * @param {Number} size size of the shape
+     * @param {Number} r red value
+     * @param {Number} g green value
+     * @param {Number} b blue value
+     * @param {Number} a alpha/transparency value
+     */
+    constructor(x, y, size, r, g, b, a) {
+        this.x = x;
+        this.y = y;
+        this.size = size;
+        this.fill = {
+            r: r,
+            g: g,
+            b: b,
+            a: a
+        };
+    }
+
+    /**
+     * draws the shape
+     */
+    display() {
+        throw new Error("Method 'display()' must be implemented.");
+    }
+}
+
+/**
+ * triangle shape that can be moved
+ */
+class TriangleShape extends ShapeBase {
+    /**
+     * constructor
+     * @param {Number} x x coordinate of center
+     * @param {Number} y y coordinate of center
+     * @param {Number} size size of the shape
+     * @param {Number} r red value
+     * @param {Number} g green value
+     * @param {Number} b blue value
+     * @param {Number} a alpha/transparency value 
+     */
+    constructor(x, y, size, r, g, b, a) {
+        super(x, y, size, r, g, b, a);
+    }
+
+    isDisappear = false;
+    isMoving = false;
+    isMisplaced = false;
+
+    /**
+     * draws the triangle
+     */
+    display() {
+        if (this.isMoving) {
+            this.x = constrain(mouseX, 0, width);
+            this.y = constrain(mouseY, 0, height);
+        }
+        else if (this.isDisappear) {
+            this.size = constrain(this.size - 0.5, 0, 72);
+            this.fill.a -= 5;
+            this.fill.a = constrain(this.fill.a, 0, 255);
+
+            if (this.size == 0) {
+                this.x = 0;
+                this.y = 0;
+                this.isMisplaced = false;
+            }
+        }
+
+        push();
+        let x1 = this.x;
+        let y1 = this.y - this.size;
+
+        let x2 = this.x - this.size;
+        let y2 = this.y + this.size;
+
+        let x3 = this.x + this.size;
+        let y3 = this.y + this.size;
+
+        fill(this.fill.r, this.fill.g, this.fill.b, this.fill.a);
+        stroke(255, 255, 255, this.fill.a);
+        triangle(
+            x1, y1,
+            x2, y2,
+            x3, y3
+        );
+        pop();
+    }
+}
+
+/**
+ * triangle hole into which riangles can be placed
+ */
+class TriangleHole extends ShapeBase {
+    /**
+     * constructor
+     * @param {Number} x x coordinate of center
+     * @param {Number} y y coordinate of center
+     * @param {Number} size size of the shape
+     */
+    constructor(x, y, size) {
+        super(x, y, size, 0, 0, 0, 255);
+    }
+
+    /**
+     * draws the triangle hole
+     */
+    display() {
+        let x1 = this.x;
+        let y1 = this.y - this.size;
+
+        let x2 = this.x - this.size;
+        let y2 = this.y + this.size;
+
+        let x3 = this.x + this.size;
+        let y3 = this.y + this.size;
+
+        push();
+        fill(this.fill.r, this.fill.g, this.fill.b, this.fill.a);
+        noStroke();
+        triangle(
+            x1, y1,
+            x2, y2,
+            x3, y3
+        );
+        pop();
+    }
+}
+
+/**
+ * circle shape that can be moved
+ */
+class CircleShape extends ShapeBase {
+    /**
+     * constructor
+     * @param {Number} x x coordinate of center
+     * @param {Number} y y coordinate of center
+     * @param {Number} size size of the shape
+     * @param {Number} r red value
+     * @param {Number} g green value
+     * @param {Number} b blue value
+     * @param {Number} a alpha/transparency value
+     */
+    constructor(x, y, size, r, g, b, a) {
+        super(x, y, size, r, g, b, a);
+    }
+
+    isDisappear = false;
+    isMoving = false;
+    isMisplaced = false;
+
+    /**
+     * draws the circle
+     */
+    display() {
+        push();
+        if (this.isMoving) {
+            this.x = mouseX;
+            this.y = mouseY;
+
+            this.x = constrain(this.x, 0, width);
+            this.y = constrain(this.y, 0, height);
+        }
+        else if (this.isDisappear) {
+            this.size = constrain(this.size - 2, 0, 72);
+            this.fill.a = constrain(this.fill.a - 5, 0, 255);
+
+            if (this.size == 0) {
+                this.x = 0;
+                this.y = 0;
+                this.isMisplaced = false;
+            }
+        }
+
+        fill(this.fill.r, this.fill.g, this.fill.b, this.fill.a);
+        stroke(255, 255, 255, this.fill.a);
+        ellipse(this.x, this.y, this.size);
+        pop();
+    }
+}
+
+/**
+ * circle hole into which circles can be placed
+ */
+class CircleHole extends ShapeBase {
+    /**
+     * constructor
+     * @param {Number} x x coordinate of center
+     * @param {Number} y y coordinate of center
+     * @param {Number} size size of the shape
+     */
+    constructor(x, y, size) {
+        super(x, y, size, 0, 0, 0, 255);
+    }
+
+    /**
+     * draws the circle hole
+     */
+    display() {
+        push();
+        fill(this.fill.r, this.fill.g, this.fill.b, this.fill.a);
+        noStroke();
+        ellipse(this.x, this.y, this.size);
+        pop();
+    }
+}
+
+/**
+ * square shape that can be moved
+ */
+class SquareShape extends ShapeBase {
+    /**
+     * constructor
+     * @param {Number} x x coordinate of center
+     * @param {Number} y y coordinate of center
+     * @param {Number} size size of the shape
+     * @param {Number} r red value
+     * @param {Number} g green value
+     * @param {Number} b blue value
+     * @param {Number} a alpha/transparency value
+     */
+    constructor(x, y, size, r, g, b, a) {
+        super(x, y, size, r, g, b, a);
+    }
+
+    isDisappear = false;
+    isMoving = false;
+    isMisplaced = false;
+
+    /**
+     * draws the square
+     */
+    display() {
+        if (this.isMoving) {
+            this.x = mouseX;
+            this.y = mouseY;
+
+            this.x = constrain(this.x, 0, width);
+            this.y = constrain(this.y, 0, height);
+        }
+        else if (this.isDisappear) {
+            this.size -= 1.75;
+            this.size = constrain(this.size, 0, 72);
+            this.fill.a -= 5;
+            this.fill.a = constrain(this.fill.a, 0, 255);
+
+            if (this.size == 0) {
+                this.x = 0;
+                this.y = 0;
+                this.isMisplaced = false;
+            }
+        }
+        
+        push();
+        fill(this.fill.r, this.fill.g, this.fill.b, this.fill.a);
+        stroke(255, 255, 255, this.fill.a);
+        rect(this.x, this.y, this.size);
+        pop();
+    }
+}
+
+/**
+ * square hole into which shapes can be placed
+ */
+class SquareHole extends ShapeBase {
+    /**
+     * constructor
+     * @param {Number} x x coordinate of center
+     * @param {Number} y y coordinate of center
+     * @param {Number} size size of the shape
+     */
+    constructor(x, y, size) {
+        super(x, y, size, 0, 0, 0, 255);
+    }
+
+    /**
+     * draws the square hole
+     */
+    display() {
+        push();
+        fill(this.fill.r, this.fill.g, this.fill.b, this.fill.a);
+        noStroke();
+        rect(this.x, this.y, this.size);
+        pop();
+    }
+}
+
+/**
+ * class for the flowers
+ */
+class Flower {
+    /**
+     * 
+     * @param {Number} x x coordinate of the center
+     * @param {Number} y y coordinate of the center
+     * @param {Number} petalAngleA petal angle A from the center
+     * @param {Number} petalAngleB petal angle B from the center
+     * @param {Number} petalAngleC petal angle C from the center
+     * @param {Number} petalAngleD petal angle D from the center
+     * @param {Number} leafAngle leaf angle from the center
+     * @param {Number} spinRate how fast the flower spins
+     */
+    constructor(x, y, petalAngleA, petalAngleB, petalAngleC, petalAngleD, leafAngle, spinRate) {
+        this.x = x;
+        this.y = y;
+        this.petalAngleA = petalAngleA;
+        this.petalAngleB = petalAngleB;
+        this.petalAngleC = petalAngleC;
+        this.petalAngleD = petalAngleD;
+        this.leafAngle = leafAngle;
+        this.spinRate = spinRate;
+    }
+
+    fill = {
+        center: "#ffd585",
+        petal: "#f57399",
+        leaf: "#5cb567",
+    };
+
+    size = {
+        center: 30,
+        petal: 25,
+        leaf: 15,
+    };
+    
+    lengthModifier = {
+        petal: 20,
+        leaf: 30,
+    };
+
+    /**
+     * rotates the angle of the flower's petals and leaf, clockwise
+     */
+    rotate() {
+        this.petalAngleA -= this.spinRate;
+        this.petalAngleB -= this.spinRate;
+        this.petalAngleC -= this.spinRate;
+        this.petalAngleD -= this.spinRate;
+        this.leafAngle -= this.spinRate;
+    }
+
+    /**
+     * draws the flower
+     */
+    display() {
+        //leaf
+        push();
+        strokeWeight(this.size.leaf);
+        stroke(this.fill.leaf);
+        const xL2 = this.x + sin(this.leafAngle) * this.lengthModifier.leaf;
+        const yL2 = this.y + cos(this.leafAngle) * this.lengthModifier.leaf;
+        line(this.x, this.y, xL2, yL2);
+        pop();
+
+        //petals
+        push();
+        strokeWeight(this.size.petal);
+        stroke(this.fill.petal);
+
+        const xA2 = this.x + sin(this.petalAngleA) * this.lengthModifier.petal;
+        const yA2 = this.y + cos(this.petalAngleA) * this.lengthModifier.petal;
+        line(this.x, this.y, xA2, yA2);
+
+        const xB2 = this.x + sin(this.petalAngleB) * this.lengthModifier.petal;
+        const yB2 = this.y + cos(this.petalAngleB) * this.lengthModifier.petal;
+        line(this.x, this.y, xB2, yB2);
+
+        const xC2 = this.x + sin(this.petalAngleC) * this.lengthModifier.petal;
+        const yC2 = this.y + cos(this.petalAngleC) * this.lengthModifier.petal;
+        line(this.x, this.y, xC2, yC2);
+
+        const xD2 = this.x + sin(this.petalAngleD) * this.lengthModifier.petal;
+        const yD2 = this.y + cos(this.petalAngleD) * this.lengthModifier.petal;
+        line(this.x, this.y, xD2, yD2);
+        pop();
+
+        //center
+        push();
+        noStroke();
+        fill(this.fill.center);
+        ellipse(this.x, this.y, this.size.center);
+        pop();
+    }
+}
+
+let pinkTriangle;
+let triangleHole;
+
+let orangeCircle;
+let circleHole;
+
+let greenSquare;
+let squareHole;
+
+let flower1;
+let flower2;
+let flower3;
+
 const clownBoy = {
     hood: {
         base: {
@@ -100,84 +506,6 @@ const shapeHoleSpace = {
     minDiff: 85,
 };
 
-const squareObject = {
-    moving: {
-        x: 0,
-        y: 0,
-        size: 75,
-        fill: {
-            r: 117,
-            g: 209,
-            b: 128,
-            a: 255,
-        },
-        isDisappear: false,
-        isMoving: false,
-        isMisplaced: false,
-    },
-    hole: {
-        x: undefined,
-        y: undefined,
-        size: 80,
-    },
-};
-
-const circleObject = {
-    moving: {
-        x: 0,
-        y: 0,
-        size: 77,
-        fill: {
-            r: 245,
-            g: 164,
-            b: 93,
-            a: 255,
-        },
-        isDisappear: false,
-        isMoving: false,
-        isMisplaced: false,
-    },
-    hole: {
-        x: undefined,
-        y: undefined,
-        size: 80,
-    },
-}
-
-const triangleObject = {
-    moving: {
-        xCenter: 0,
-        yCenter: 0,
-        x1: 0,
-        y1: 0,
-        x2: 0,
-        y2: 0,
-        x3: 0,
-        y3: 0,
-        distCenterPoint: 35,
-        fill: {
-            r: 247,
-            g: 141,
-            b: 172,
-            a: 255,
-        },
-        isDisappear: false,
-        isMoving: false,
-        isMisplaced: false,
-    },
-    hole: {
-        xCenter: undefined,
-        yCenter: undefined,
-        x1: undefined,
-        y1: undefined,
-        x2: undefined,
-        y2: undefined,
-        x3: undefined,
-        y3: undefined,
-        distCenterPoint: 37,
-    },
-};
-
 const reloadBtn = {
     x: undefined,
     y: undefined,
@@ -190,94 +518,6 @@ const reloadBtn = {
     stroke: "#227d85",
     txtSize: 28,
 };
-
-class Flower {
-    constructor(x, y, petalAngleA, petalAngleB, petalAngleC, petalAngleD, leafAngle, spinRate) {
-        this.x = x;
-        this.y = y;
-        this.petalAngleA = petalAngleA;
-        this.petalAngleB = petalAngleB;
-        this.petalAngleC = petalAngleC;
-        this.petalAngleD = petalAngleD;
-        this.leafAngle = leafAngle;
-        this.spinRate = spinRate;
-    }
-
-    fill = {
-        center: "#ffd585",
-        petal: "#f57399",
-        leaf: "#5cb567",
-    };
-
-    size = {
-        center: 30,
-        petal: 25,
-        leaf: 15,
-    };
-    
-    lengthModifier = {
-        petal: 20,
-        leaf: 30,
-    };
-
-    /**
-     * rotates the angle of the flower's petals and leaf, clockwise
-     */
-    rotate() {
-        this.petalAngleA -= this.spinRate;
-        this.petalAngleB -= this.spinRate;
-        this.petalAngleC -= this.spinRate;
-        this.petalAngleD -= this.spinRate;
-        this.leafAngle -= this.spinRate;
-    }
-
-    /**
-     * draws the flower
-     */
-    display() {
-        //leaf
-        push();
-        strokeWeight(this.size.leaf);
-        stroke(this.fill.leaf);
-        const xL2 = this.x + sin(this.leafAngle) * this.lengthModifier.leaf;
-        const yL2 = this.y + cos(this.leafAngle) * this.lengthModifier.leaf;
-        line(this.x, this.y, xL2, yL2);
-        pop();
-
-        //petals
-        push();
-        strokeWeight(this.size.petal);
-        stroke(this.fill.petal);
-
-        const xA2 = this.x + sin(this.petalAngleA) * this.lengthModifier.petal;
-        const yA2 = this.y + cos(this.petalAngleA) * this.lengthModifier.petal;
-        line(this.x, this.y, xA2, yA2);
-
-        const xB2 = this.x + sin(this.petalAngleB) * this.lengthModifier.petal;
-        const yB2 = this.y + cos(this.petalAngleB) * this.lengthModifier.petal;
-        line(this.x, this.y, xB2, yB2);
-
-        const xC2 = this.x + sin(this.petalAngleC) * this.lengthModifier.petal;
-        const yC2 = this.y + cos(this.petalAngleC) * this.lengthModifier.petal;
-        line(this.x, this.y, xC2, yC2);
-
-        const xD2 = this.x + sin(this.petalAngleD) * this.lengthModifier.petal;
-        const yD2 = this.y + cos(this.petalAngleD) * this.lengthModifier.petal;
-        line(this.x, this.y, xD2, yD2);
-        pop();
-
-        //center
-        push();
-        noStroke();
-        fill(this.fill.center);
-        ellipse(this.x, this.y, this.size.center);
-        pop();
-    }
-}
-
-let flower1;
-let flower2;
-let flower3;
 
 const maxTimer = 3;
 let startFlowerTimer = false;
@@ -325,19 +565,89 @@ function initValues() {
     shapeHoleSpace.yMin = height/10;
     shapeHoleSpace.yMax = height/3;
 
-    squareObject.moving.x = width/10;
-    squareObject.moving.y = 9 * height/10;
-
-    circleObject.moving.x = width/2;
-    circleObject.moving.y = 9 * height/10;
-
-    triangleObject.moving.xCenter = 9 * height/10;
-    triangleObject.moving.yCenter = 9 * height/10;
+    pinkTriangle = new TriangleShape(9 * height/10, 9 * height/10, 35, 247, 141, 172, 255);
+    orangeCircle = new CircleShape(width/2, 9 * height/10, 77, 245, 164, 93, 255)
+    greenSquare = new SquareShape(width/10, 9 * height/10, 75, 117, 209, 128, 255);
 
     reloadBtn.x = width/2;
     reloadBtn.y = 9 * height/10;
 
     initShapeHoles();
+}
+
+/**
+ * initializes each hole's center coordinates with a random value,
+ * making sure none overlap
+ */
+function initShapeHoles() {
+    squareHole = new SquareHole(
+        random(shapeHoleSpace.xMin, shapeHoleSpace.xMax),
+        random(shapeHoleSpace.yMin, shapeHoleSpace.yMax),
+        80
+    );
+
+    for(;;) {
+        let xC = random(shapeHoleSpace.xMin, shapeHoleSpace.xMax);
+        let yC = random(shapeHoleSpace.yMin, shapeHoleSpace.yMax);
+
+        let dx = abs(xC - squareHole.x);
+        let dy = abs(yC - squareHole.y);
+
+        if (dx > shapeHoleSpace.minDiff || dy > shapeHoleSpace.minDiff) {
+            circleHole = new CircleHole(xC, yC, 80);
+            break;
+        }
+    }
+
+    for(;;) {
+        let size = 37;
+        let xT = random(shapeHoleSpace.xMin, shapeHoleSpace.xMax);
+        let yT = random(shapeHoleSpace.yMin, shapeHoleSpace.yMax);
+
+        let x1 = xT;
+        let y1 = yT - size;
+
+        let x2 = xT - size;
+        let y2 = yT + size;
+
+        let x3 = xT + size;
+        let y3 = yT + size;
+
+        let dSquarex = abs(xT - squareHole.x);
+        let dSquarey = abs(yT - squareHole.y);
+        let squareFarEnough = dSquarex > shapeHoleSpace.minDiff || dSquarey > shapeHoleSpace.minDiff;
+
+        let isP1Overlap = isCirclePointClose(
+            circleHole.x,
+            circleHole.y,
+            x1,
+            y1,
+            shapeHoleSpace.minDiff
+        );
+
+        let isP2Overlap = isCirclePointClose(
+            circleHole.x,
+            circleHole.y,
+            x2,
+            y2,
+            shapeHoleSpace.minDiff
+        );
+
+        let isP3Overlap = isCirclePointClose(
+            circleHole.x,
+            circleHole.y,
+            x3,
+            y3,
+            shapeHoleSpace.minDiff
+        );
+
+        let circleFarEnough = !isP1Overlap && !isP2Overlap && !isP3Overlap;
+
+        if (squareFarEnough && circleFarEnough) {
+            triangleHole = new TriangleHole(xT, yT, size);
+            break;
+        }
+    }
 }
 
 /**
@@ -353,15 +663,15 @@ function draw() {
     drawMovingMouth();
 
     //holes
-    drawSquare(true);
-    drawCircle(true);
-    drawTriangle(true);
+    squareHole.display();
+    circleHole.display();
+    triangleHole.display();
     //shapes
-    drawSquare(false);
-    drawCircle(false);
-    drawTriangle(false);
+    greenSquare.display();
+    orangeCircle.display();
+    pinkTriangle.display();
 
-    isDone = squareObject.moving.isDisappear && circleObject.moving.isDisappear && triangleObject.moving.isDisappear;
+    isDone = greenSquare.isDisappear && orangeCircle.isDisappear && pinkTriangle.isDisappear;
 
     if (startFlowerTimer) {
         if (frameCount % 60 == 0 && flowerTimer > 0) {
@@ -395,7 +705,8 @@ function draw() {
             displeasedTimer = maxTimer;
             startDispleasedTimer = false;
 
-            if (!triangleObject.moving.isMisplaced && !circleObject.moving.isMisplaced && !squareObject.moving.isDisappear) {
+            //a shape could still be misplaced at the end of the timer, then we want to frown still
+            if (!pinkTriangle.isMisplaced && !orangeCircle.isMisplaced && !greenSquare.isDisappear) {
                 clownBoy.isDispleased = false;
             }
         }
@@ -415,7 +726,7 @@ function draw() {
             clownBoy.isHappy = false;
         }
 
-        drawResetBtn();
+        drawReloadBtn();
     }
 }
 
@@ -972,75 +1283,6 @@ function drawTeeth() {
 }
 
 /**
- * initializes each hole's center coordinates with a random value,
- * making sure none overlap
- */
-function initShapeHoles() {
-    squareObject.hole.x = random(shapeHoleSpace.xMin, shapeHoleSpace.xMax);
-    squareObject.hole.y = random(shapeHoleSpace.yMin, shapeHoleSpace.yMax);
-
-    for(;;) {
-        circleObject.hole.x = random(shapeHoleSpace.xMin, shapeHoleSpace.xMax);
-        circleObject.hole.y = random(shapeHoleSpace.yMin, shapeHoleSpace.yMax);
-
-        let dx = abs(circleObject.hole.x - squareObject.hole.x);
-        let dy = abs(circleObject.hole.y - squareObject.hole.y);
-
-        if (dx > shapeHoleSpace.minDiff || dy > shapeHoleSpace.minDiff) {
-            break;
-        }
-    }
-
-    for(;;) {
-        triangleObject.hole.xCenter = random(shapeHoleSpace.xMin, shapeHoleSpace.xMax);
-        triangleObject.hole.yCenter = random(shapeHoleSpace.yMin, shapeHoleSpace.yMax);
-
-        triangleObject.hole.x1 = triangleObject.hole.xCenter;
-        triangleObject.hole.y1 = triangleObject.hole.yCenter - triangleObject.hole.distCenterPoint;
-
-        triangleObject.hole.x2 = triangleObject.hole.xCenter - triangleObject.hole.distCenterPoint;
-        triangleObject.hole.y2 = triangleObject.hole.yCenter + triangleObject.hole.distCenterPoint;
-
-        triangleObject.hole.x3 = triangleObject.hole.xCenter + triangleObject.hole.distCenterPoint;
-        triangleObject.hole.y3 = triangleObject.hole.yCenter + triangleObject.hole.distCenterPoint;
-
-        let dSquarex = abs(triangleObject.hole.xCenter - squareObject.hole.x);
-        let dSquarey = abs(triangleObject.hole.yCenter - squareObject.hole.y);
-        let squareFarEnough = dSquarex > shapeHoleSpace.minDiff || dSquarey > shapeHoleSpace.minDiff;
-
-        let isP1Overlap = isCirclePointClose(
-            circleObject.hole.x,
-            circleObject.hole.y,
-            triangleObject.hole.x1,
-            triangleObject.hole.y1,
-            shapeHoleSpace.minDiff
-        );
-
-        let isP2Overlap = isCirclePointClose(
-            circleObject.hole.x,
-            circleObject.hole.y,
-            triangleObject.hole.x2,
-            triangleObject.hole.y2,
-            shapeHoleSpace.minDiff
-        );
-
-        let isP3Overlap = isCirclePointClose(
-            circleObject.hole.x,
-            circleObject.hole.y,
-            triangleObject.hole.x3,
-            triangleObject.hole.y3,
-            shapeHoleSpace.minDiff
-        );
-
-        let circleFarEnough = !isP1Overlap && !isP2Overlap && !isP3Overlap;
-
-        if (squareFarEnough && circleFarEnough) {
-            break;
-        }
-    }
-}
-
-/**
  * callback event when a mouse button gets pressed down
  * checks if the mouse pointer overlaps a shape in order to move it
  * @param {MouseEvent} evt 
@@ -1048,24 +1290,18 @@ function initShapeHoles() {
  */
 function mousePressed(evt) {
     if (evt.button == 0) {
-        if (isTrianglePointOverlap(triangleObject.moving, mouseX, mouseY) && !triangleObject.moving.isDisappear) {
-            triangleObject.moving.isMoving = true;
+        if (isTrianglePointOverlap(pinkTriangle.x, pinkTriangle.y, pinkTriangle.size, mouseX, mouseY) && !pinkTriangle.isDisappear) {
+            pinkTriangle.isMoving = true;
             return;
         }
         
-        if (
-            isCirclePointClose(circleObject.moving.x, circleObject.moving.y, mouseX, mouseY, circleObject.moving.size/2)
-            && !circleObject.moving.isDisappear
-        ) {
-            circleObject.moving.isMoving = true;
+        if (isCirclePointClose(orangeCircle.x, orangeCircle.y, mouseX, mouseY, orangeCircle.size/2) && !orangeCircle.isDisappear) {
+            orangeCircle.isMoving = true;
             return;
         }
 
-        if (
-            isRectPointOverlap(squareObject.moving, mouseX, mouseY, squareObject.moving.size, squareObject.moving.size) 
-            && !squareObject.moving.isDisappear
-        ) {
-            squareObject.moving.isMoving = true;
+        if (isRectPointOverlap(greenSquare.x, greenSquare.y, mouseX, mouseY, greenSquare.size, greenSquare.size) && !greenSquare.isDisappear) {
+            greenSquare.isMoving = true;
             return;
         }
     }
@@ -1079,16 +1315,16 @@ function mousePressed(evt) {
  */
 function mouseReleased(evt) {
     if (evt.button == 0 && isDone) {
-        if (isRectPointOverlap(reloadBtn, mouseX, mouseY, reloadBtn.w, reloadBtn.h)) {
+        if (isRectPointOverlap(reloadBtn.x, reloadBtn.y, mouseX, mouseY, reloadBtn.w, reloadBtn.h)) {
             location.reload();
         }
     }
     else if (evt.button == 0) {    
-        if (triangleObject.moving.isMoving) {
-            if (isTrianglePointOverlap(triangleObject.hole, mouseX, mouseY)) { 
-                triangleObject.moving.isMisplaced = false;
-                triangleObject.moving.isDisappear = true;
-                isDone = squareObject.moving.isDisappear && circleObject.moving.isDisappear && triangleObject.moving.isDisappear;
+        if (pinkTriangle.isMoving) {
+            if (isTrianglePointOverlap(triangleHole.x, triangleHole.y, triangleHole.size, mouseX, mouseY)) { 
+                pinkTriangle.isMisplaced = false;
+                pinkTriangle.isDisappear = true;
+                isDone = greenSquare.isDisappear && orangeCircle.isDisappear && pinkTriangle.isDisappear;
 
                 if (!isDone) {
                     clownBoy.isHappy = true;
@@ -1096,31 +1332,31 @@ function mouseReleased(evt) {
                     flowerTimer = maxTimer;
                 }
             }
-            else if (isRectPointOverlap(squareObject.hole, mouseX, mouseY, squareObject.hole.size, squareObject.hole.size)) {
-                triangleObject.moving.isMisplaced = true;
-                triangleObject.moving.isDisappear = true;
-                isDone = squareObject.moving.isDisappear && circleObject.moving.isDisappear && triangleObject.moving.isDisappear;
+            else if (isRectPointOverlap(squareHole.x, squareHole.y, mouseX, mouseY, squareHole.size, squareHole.size)) {
+                pinkTriangle.isMisplaced = true;
+                pinkTriangle.isDisappear = true;
+                isDone = greenSquare.isDisappear && orangeCircle.isDisappear && pinkTriangle.isDisappear;
                 ++countInSquareHole;
 
                 if (!isDone) {
                     startDispleasedTimer = true;
                 }
             }
-            else if (isCirclePointClose(circleObject.hole.x, circleObject.hole.y, mouseX, mouseY, circleObject.hole.size/2)) {
-                triangleObject.moving.isMisplaced = true;
+            else if (isCirclePointClose(circleHole.x, circleHole.y, mouseX, mouseY, circleHole.size/2)) {
+                pinkTriangle.isMisplaced = true;
             }
             else {
-                triangleObject.moving.isMisplaced = false;
+                pinkTriangle.isMisplaced = false;
             }
 
-            triangleObject.moving.isMoving = false;
+            pinkTriangle.isMoving = false;
         }
         
-        if (circleObject.moving.isMoving) {
-            if (isCirclePointClose(circleObject.hole.x, circleObject.hole.y, mouseX, mouseY, circleObject.hole.size/2)) {
-                circleObject.moving.isMisplaced = false;
-                circleObject.moving.isDisappear = true;
-                isDone = squareObject.moving.isDisappear && circleObject.moving.isDisappear && triangleObject.moving.isDisappear;
+        if (orangeCircle.isMoving) {
+            if (isCirclePointClose(circleHole.x, circleHole.y, mouseX, mouseY, circleHole.size/2)) {
+                orangeCircle.isMisplaced = false;
+                orangeCircle.isDisappear = true;
+                isDone = greenSquare.isDisappear && orangeCircle.isDisappear && pinkTriangle.isDisappear;
                 
                 if (!isDone) {
                     clownBoy.isHappy = true;
@@ -1128,31 +1364,31 @@ function mouseReleased(evt) {
                     flowerTimer = maxTimer;
                 }
             }
-            else if (isRectPointOverlap(squareObject.hole, mouseX, mouseY, squareObject.hole.size, squareObject.hole.size)) {
-                circleObject.moving.isMisplaced = true;
-                circleObject.moving.isDisappear = true;
-                isDone = squareObject.moving.isDisappear && circleObject.moving.isDisappear && triangleObject.moving.isDisappear;
+            else if (isRectPointOverlap(squareHole.x, squareHole.y, mouseX, mouseY, squareHole.size, squareHole.size)) {
+                orangeCircle.isMisplaced = true;
+                orangeCircle.isDisappear = true;
+                isDone = greenSquare.isDisappear && orangeCircle.isDisappear && pinkTriangle.isDisappear;
                 ++countInSquareHole;
 
                 if (!isDone) {
                     startDispleasedTimer = true;
                 }
             }
-            else if (isTrianglePointOverlap(triangleObject.hole, mouseX, mouseY)) {
-                circleObject.moving.isMisplaced = true;
+            else if (isTrianglePointOverlap(triangleHole.x, triangleHole.y, triangleHole.size, mouseX, mouseY)) {
+                orangeCircle.isMisplaced = true;
             }
             else {
-                circleObject.moving.isMisplaced = false;
+                orangeCircle.isMisplaced = false;
             }
             
-            circleObject.moving.isMoving = false;
+            orangeCircle.isMoving = false;
         }
 
-        if (squareObject.moving.isMoving) {
-            if (isRectPointOverlap(squareObject.hole, mouseX, mouseY, squareObject.hole.size, squareObject.hole.size)) {
-                squareObject.moving.isMisplaced = false;
-                squareObject.moving.isDisappear = true;
-                isDone = squareObject.moving.isDisappear && circleObject.moving.isDisappear && triangleObject.moving.isDisappear;
+        if (greenSquare.isMoving) {
+            if (isRectPointOverlap(squareHole.x, squareHole.y, mouseX, mouseY, squareHole.size, squareHole.size)) {
+                greenSquare.isMisplaced = false;
+                greenSquare.isDisappear = true;
+                isDone = greenSquare.isDisappear && orangeCircle.isDisappear && pinkTriangle.isDisappear;
                 
                 if (!isDone) {
                     clownBoy.isHappy = true;
@@ -1161,19 +1397,19 @@ function mouseReleased(evt) {
                 }
             }
             else if (
-                isTrianglePointOverlap(triangleObject.hole, mouseX, mouseY) 
-                || isCirclePointClose(circleObject.hole.x, circleObject.hole.y, mouseX, mouseY, circleObject.hole.size/2)
+                isTrianglePointOverlap(triangleHole.x, triangleHole.y, triangleHole.size, mouseX, mouseY) 
+                || isCirclePointClose(circleHole.x, circleHole.y, mouseX, mouseY, circleHole.size/2)
             ) {
-                squareObject.moving.isMisplaced = true;
+                greenSquare.isMisplaced = true;
             }
             else {
-                squareObject.moving.isMisplaced = false;
+                greenSquare.isMisplaced = false;
             }    
 
-            squareObject.moving.isMoving = false;
+            greenSquare.isMoving = false;
         }
 
-        if (!isDone && (triangleObject.moving.isMisplaced || circleObject.moving.isMisplaced || squareObject.moving.isMisplaced)) {
+        if (!isDone && (pinkTriangle.isMisplaced || orangeCircle.isMisplaced || greenSquare.isMisplaced)) {
             clownBoy.isDispleased = true;
         }
         else {
@@ -1183,37 +1419,50 @@ function mouseReleased(evt) {
 }
 
 /**
- * returns if a point overlaps a specific triangle
- * @param {*} tri which triangle
+ * returns if a point overlaps a triangle
+ * @param {Number} xT x coordinate of the triangle center
+ * @param {Number} yT y coordinate of the triangle center
+ * @param {Number} sizeT size of the triangle
  * @param {Number} xP x coordinate of the point
  * @param {Number} yP y coordinate of the point
- * @returns
+ * @returns 
  */
-function isTrianglePointOverlap(tri, xP, yP) {
+function isTrianglePointOverlap(xT, yT, sizeT, xP, yP) {
+    let x1 = xT;
+    let y1 = yT - sizeT;
+
+    let x2 = xT - sizeT;
+    let y2 = yT + sizeT;
+
+    let x3 = xT + sizeT;
+    let y3 = yT + sizeT;
+
     let triangleArea = getTriangleArea(
-        tri.x1, tri.y1,
-        tri.x2, tri.y2,
-        tri.x3, tri.y3
+        x1, y1,
+        x2, y2,
+        x3, y3
     );
 
     let A1 = getTriangleArea(
         xP, yP,
-        tri.x2, tri.y2,
-        tri.x3, tri.y3
+        x2, y2,
+        x3, y3
     );
 
     let A2 = getTriangleArea(
-        tri.x1, tri.y1,
+        x1, y1,
         xP, yP,
-        tri.x3, tri.y3
+        x3, y3
     );
 
     let A3 = getTriangleArea(
-        tri.x1, tri.y1,
-        tri.x2, tri.y2,
+        x1, y1,
+        x2, y2,
         xP, yP,
     );
 
+    //if the point is in the triangle, then the difference between the sum of the sub-areas and the total area
+    //should be close to 0. considering we're dealing with float values, == might not work
     return abs(A1 + A2 + A3 - triangleArea) < 0.001;
 }
 
@@ -1236,7 +1485,7 @@ function getTriangleArea(x1, y1, x2, y2, x3, y3) {
 }
 
 /**
- * returns if a point overlaps a specific circle
+ * returns if a point overlaps a circle
  * @param {Number} xCircle x coordinate of the circle
  * @param {Number} yCircle y coordinate of the circle
  * @param {Number} xP x coordinate of the point
@@ -1251,166 +1500,27 @@ function isCirclePointClose(xCircle, yCircle, xP, yP, closeDist) {
 }
 
 /**
- * returns if a point overlaps a specific rectangle
- * @param {*} rect which rectangle
+ * returns if a point overlaps a rectangle
+ * @param {Number} xR x coordinate of the rectangle
+ * @param {Number} yR y coordinate of the rectangle
  * @param {Number} xP x coordinate of the point
  * @param {Number} yP y coordinate of the point
  * @returns 
  */
-function isRectPointOverlap(rect, xP, yP, w, h) {
-    let xMin = rect.x - w/2;
-    let xMax = rect.x + w/2;
-    let yMin = rect.y - h/2;
-    let yMax = rect.y + h/2;
+function isRectPointOverlap(xR, yR, xP, yP, w, h) {  
+    let xMin = xR - w/2;
+    let xMax = xR + w/2;
+    let yMin = yR - h/2;
+    let yMax = yR + h/2;
 
     return (xP >= xMin && xP <= xMax && yP >= yMin && yP <= yMax);
 }
 
 /**
- * draws a square
- * @param {boolean} isHole if it's the square hole
- */
-function drawSquare(isHole) {
-    push();
-    
-    if (isHole) {    
-        fill(0);
-        noStroke();
-        rect(squareObject.hole.x, squareObject.hole.y, squareObject.hole.size);
-    }
-    else {
-        if (squareObject.moving.isMoving) {
-            squareObject.moving.x = mouseX;
-            squareObject.moving.y = mouseY;
-
-            squareObject.moving.x = constrain(squareObject.moving.x, 0, width);
-            squareObject.moving.y = constrain(squareObject.moving.y, 0, height);
-        }
-        else if (squareObject.moving.isDisappear) {
-            squareObject.moving.size -= 1.75;
-            squareObject.moving.size = constrain(squareObject.moving.size, 0, 72);
-            squareObject.moving.fill.a -= 5;
-            squareObject.moving.fill.a = constrain(squareObject.moving.fill.a, 0, 255);
-
-            if (squareObject.moving.size == 0) {
-                squareObject.moving.x = 0;
-                squareObject.moving.y = 0;
-                squareObject.moving.isMisplaced = false;
-            }
-        }
-
-        fill(squareObject.moving.fill.r, squareObject.moving.fill.g, squareObject.moving.fill.b, squareObject.moving.fill.a);
-        stroke(255, 255, 255, squareObject.moving.fill.a);
-        rect(squareObject.moving.x, squareObject.moving.y, squareObject.moving.size);
-    }
-
-    pop();
-}
-
-/**
- * draws a circle
- * @param {boolean} isHole if it's the circle hole
- */
-function drawCircle(isHole) {
-    push();
-    
-    if (isHole) {
-        fill(0);
-        noStroke();
-        ellipse(circleObject.hole.x, circleObject.hole.y, circleObject.hole.size);
-    }
-    else {
-        if (circleObject.moving.isMoving) {
-            circleObject.moving.x = mouseX;
-            circleObject.moving.y = mouseY;
-
-            circleObject.moving.x = constrain(circleObject.moving.x, 0, width);
-            circleObject.moving.y = constrain(circleObject.moving.y, 0, height);
-        }
-        else if (circleObject.moving.isDisappear) {
-            circleObject.moving.size -= 2;
-            circleObject.moving.size = constrain(circleObject.moving.size, 0, 72);
-            circleObject.moving.fill.a -= 5;
-            circleObject.moving.fill.a = constrain(circleObject.moving.fill.a, 0, 255);
-
-            if (circleObject.moving.size == 0) {
-                circleObject.moving.x = 0;
-                circleObject.moving.y = 0;
-                circleObject.moving.isMisplaced = false;
-            }
-        }
-
-        fill(circleObject.moving.fill.r, circleObject.moving.fill.g, circleObject.moving.fill.b, circleObject.moving.fill.a);
-        stroke(255, 255, 255, circleObject.moving.fill.a);
-        ellipse(circleObject.moving.x, circleObject.moving.y, circleObject.moving.size);
-    }
-
-    pop();
-}
-
-/**
- * draws a triangle
- * @param {boolean} isHole if it's the triangle hole
- */
-function drawTriangle(isHole) {
-    push();
-
-    if (isHole) {
-        fill(0);
-        noStroke();
-        triangle(
-            triangleObject.hole.x1, triangleObject.hole.y1,
-            triangleObject.hole.x2, triangleObject.hole.y2,
-            triangleObject.hole.x3, triangleObject.hole.y3
-        );
-    }
-    else {
-        if (triangleObject.moving.isMoving) {
-            triangleObject.moving.xCenter = mouseX;
-            triangleObject.moving.yCenter = mouseY;
-
-            triangleObject.moving.xCenter = constrain(triangleObject.moving.xCenter, 0, width);
-            triangleObject.moving.yCenter = constrain(triangleObject.moving.yCenter, 0, height);
-        }
-        else if (triangleObject.moving.isDisappear) {
-            triangleObject.moving.distCenterPoint -= 0.5;
-            triangleObject.moving.distCenterPoint = constrain(triangleObject.moving.distCenterPoint, 0, 72);
-            triangleObject.moving.fill.a -= 5;
-            triangleObject.moving.fill.a = constrain(triangleObject.moving.fill.a, 0, 255);
-
-            if (triangleObject.moving.distCenterPoint == 0) {
-                triangleObject.moving.xCenter = 0;
-                triangleObject.moving.yCenter = 0;
-                triangleObject.moving.isMisplaced = false;
-            }
-        }
-
-        triangleObject.moving.x1 = triangleObject.moving.xCenter;
-        triangleObject.moving.y1 = triangleObject.moving.yCenter - triangleObject.moving.distCenterPoint;
-
-        triangleObject.moving.x2 = triangleObject.moving.xCenter - triangleObject.moving.distCenterPoint;
-        triangleObject.moving.y2 = triangleObject.moving.yCenter + triangleObject.moving.distCenterPoint;
-
-        triangleObject.moving.x3 = triangleObject.moving.xCenter + triangleObject.moving.distCenterPoint;
-        triangleObject.moving.y3 = triangleObject.moving.yCenter + triangleObject.moving.distCenterPoint;
-
-        fill(triangleObject.moving.fill.r, triangleObject.moving.fill.g, triangleObject.moving.fill.b, triangleObject.moving.fill.a);
-        stroke(255, 255, 255, triangleObject.moving.fill.a);
-        triangle(
-            triangleObject.moving.x1, triangleObject.moving.y1,
-            triangleObject.moving.x2, triangleObject.moving.y2,
-            triangleObject.moving.x3, triangleObject.moving.y3
-        );
-    }
-
-    pop();
-}
-
-/**
  * draws the reset button
  */
-function drawResetBtn() {
-    let isHover = isRectPointOverlap(reloadBtn, mouseX, mouseY, reloadBtn.w, reloadBtn.h);
+function drawReloadBtn() {
+    let isHover = isRectPointOverlap(reloadBtn.x, reloadBtn.y, mouseX, mouseY, reloadBtn.w, reloadBtn.h);
     let btnTxt = "Yippee!!";
 
     if (isHover) {
