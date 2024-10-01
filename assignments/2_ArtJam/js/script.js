@@ -219,6 +219,60 @@ class Flower {
         petal: 20,
         leaf: 30,
     };
+
+    /**
+     * rotates the angle of the flower's petals and leaf, clockwise
+     */
+    rotate() {
+        this.petalAngleA -= this.spinRate;
+        this.petalAngleB -= this.spinRate;
+        this.petalAngleC -= this.spinRate;
+        this.petalAngleD -= this.spinRate;
+        this.leafAngle -= this.spinRate;
+    }
+
+    /**
+     * draws the flower
+     */
+    display() {
+        //leaf
+        push();
+        strokeWeight(this.size.leaf);
+        stroke(this.fill.leaf);
+        const xL2 = this.x + sin(this.leafAngle) * this.lengthModifier.leaf;
+        const yL2 = this.y + cos(this.leafAngle) * this.lengthModifier.leaf;
+        line(this.x, this.y, xL2, yL2);
+        pop();
+
+        //petals
+        push();
+        strokeWeight(this.size.petal);
+        stroke(this.fill.petal);
+
+        const xA2 = this.x + sin(this.petalAngleA) * this.lengthModifier.petal;
+        const yA2 = this.y + cos(this.petalAngleA) * this.lengthModifier.petal;
+        line(this.x, this.y, xA2, yA2);
+
+        const xB2 = this.x + sin(this.petalAngleB) * this.lengthModifier.petal;
+        const yB2 = this.y + cos(this.petalAngleB) * this.lengthModifier.petal;
+        line(this.x, this.y, xB2, yB2);
+
+        const xC2 = this.x + sin(this.petalAngleC) * this.lengthModifier.petal;
+        const yC2 = this.y + cos(this.petalAngleC) * this.lengthModifier.petal;
+        line(this.x, this.y, xC2, yC2);
+
+        const xD2 = this.x + sin(this.petalAngleD) * this.lengthModifier.petal;
+        const yD2 = this.y + cos(this.petalAngleD) * this.lengthModifier.petal;
+        line(this.x, this.y, xD2, yD2);
+        pop();
+
+        //center
+        push();
+        noStroke();
+        fill(this.fill.center);
+        ellipse(this.x, this.y, this.size.center);
+        pop();
+    }
 }
 
 let flower1;
@@ -294,7 +348,8 @@ function draw() {
 
     setClownLookWhere();
     drawHead();
-    drawMovingEyes();
+    drawEye(clownBoy.eyes.left, clownBoy.isLookingLeft);
+    drawEye(clownBoy.eyes.right, clownBoy.isLookingRight);
     drawMovingMouth();
 
     //holes
@@ -321,10 +376,14 @@ function draw() {
     }
 
     if (clownBoy.isHappy) {
-        drawFlower(flower1);
-        drawFlower(flower2);
-        drawFlower(flower3);
-        rotateFlowers();
+        flower1.rotate();
+        flower1.display();
+
+        flower2.rotate();
+        flower2.display();
+
+        flower3.rotate();
+        flower3.display();
     }
 
     if (startDispleasedTimer) {
@@ -660,7 +719,7 @@ function drawHood() {
 /**
  * draws an eye, in a certain mood, looking in a certain direction
  * @param {*} eye which eye to draw
- * @param {boolean} lookingInDirection 
+ * @param {boolean} lookingInDirection is either looking left or right, depending on the eye
  */
 function drawEye(eye, lookingInDirection) {
     push();
@@ -768,14 +827,6 @@ function drawEye(eye, lookingInDirection) {
             );
     } 
     pop();
-}
-
-/**
- * draws the eyes
- */
-function drawMovingEyes() {
-    drawEye(clownBoy.eyes.left, clownBoy.isLookingLeft);
-    drawEye(clownBoy.eyes.right, clownBoy.isLookingRight);
 }
 
 /**
@@ -918,73 +969,6 @@ function drawTeeth() {
     pop();
 
     angleMode(RADIANS);
-}
-
-/**
- * draws a flower
- * @param {Flower} flower specific flower object
- */
-function drawFlower(flower) {
-    //leaf
-    push();
-    strokeWeight(flower.size.leaf);
-    stroke(flower.fill.leaf);
-    const xL2 = flower.x + sin(flower.leafAngle) * flower.lengthModifier.leaf;
-    const yL2 = flower.y + cos(flower.leafAngle) * flower.lengthModifier.leaf;
-    line(flower.x, flower.y, xL2, yL2);
-    pop();
-
-    //petals
-    push();
-    strokeWeight(flower.size.petal);
-    stroke(flower.fill.petal);
-
-    const xA2 = flower.x + sin(flower.petalAngleA) * flower.lengthModifier.petal;
-    const yA2 = flower.y + cos(flower.petalAngleA) * flower.lengthModifier.petal;
-    line(flower.x, flower.y, xA2, yA2);
-
-    const xB2 = flower.x + sin(flower.petalAngleB) * flower.lengthModifier.petal;
-    const yB2 = flower.y + cos(flower.petalAngleB) * flower.lengthModifier.petal;
-    line(flower.x, flower.y, xB2, yB2);
-
-    const xC2 = flower.x + sin(flower.petalAngleC) * flower.lengthModifier.petal;
-    const yC2 = flower.y + cos(flower.petalAngleC) * flower.lengthModifier.petal;
-    line(flower.x, flower.y, xC2, yC2);
-
-    const xD2 = flower.x + sin(flower.petalAngleD) * flower.lengthModifier.petal;
-    const yD2 = flower.y + cos(flower.petalAngleD) * flower.lengthModifier.petal;
-    line(flower.x, flower.y, xD2, yD2);
-    pop();
-
-    //center
-    push();
-    noStroke();
-    fill(flower.fill.center);
-    ellipse(flower.x, flower.y, flower.size.center);
-    pop();
-}
-
-/**
- * rotates the angle of each flower's petals and leaf, clockwise
- */
-function rotateFlowers() {
-    flower1.petalAngleA -= flower1.spinRate;
-    flower1.petalAngleB -= flower1.spinRate;
-    flower1.petalAngleC -= flower1.spinRate;
-    flower1.petalAngleD -= flower1.spinRate;
-    flower1.leafAngle -= flower1.spinRate;
-
-    flower2.petalAngleA -= flower2.spinRate;
-    flower2.petalAngleB -= flower2.spinRate;
-    flower2.petalAngleC -= flower2.spinRate;
-    flower2.petalAngleD -= flower2.spinRate;
-    flower2.leafAngle -= flower2.spinRate;
-
-    flower3.petalAngleA -= flower3.spinRate;
-    flower3.petalAngleB -= flower3.spinRate;
-    flower3.petalAngleC -= flower3.spinRate;
-    flower3.petalAngleD -= flower3.spinRate;
-    flower3.leafAngle -= flower3.spinRate;
 }
 
 /**
