@@ -230,7 +230,9 @@ let startFlowerTimer = false;
 let flowerTimer = maxTimer;
 let startDispleasedTimer = false;
 let displeasedTimer = maxTimer;
+
 let countInSquareHole = 0;
+let isDone = false;
 
 /**
  * sets up the canvas
@@ -304,6 +306,8 @@ function draw() {
     drawCircle(false);
     drawTriangle(false);
 
+    isDone = squareObject.moving.isDisappear && circleObject.moving.isDisappear && triangleObject.moving.isDisappear;
+
     if (startFlowerTimer) {
         if (frameCount % 60 == 0 && flowerTimer > 0) {
             --flowerTimer;
@@ -338,7 +342,7 @@ function draw() {
         }
     }
 
-    if (squareObject.moving.isDisappear && circleObject.moving.isDisappear && triangleObject.moving.isDisappear) {
+    if (isDone) {
         if (countInSquareHole >= 2) {
             clownBoy.isHappy = false;
             clownBoy.isDispleased = true;
@@ -1020,34 +1024,31 @@ function initShapeHoles() {
         let dSquarey = abs(triangleObject.hole.yCenter - squareObject.hole.y);
         let squareFarEnough = dSquarex > shapeHoleSpace.minDiff || dSquarey > shapeHoleSpace.minDiff;
 
-        let isP1Overlap = isCirclePointOverlap(
+        let isP1Overlap = isCirclePointClose(
             circleObject.hole.x,
             circleObject.hole.y,
             triangleObject.hole.x1,
             triangleObject.hole.y1,
-            circleObject.hole.size/2
+            shapeHoleSpace.minDiff
         );
 
-        let isP2Overlap = isCirclePointOverlap(
+        let isP2Overlap = isCirclePointClose(
             circleObject.hole.x,
             circleObject.hole.y,
             triangleObject.hole.x2,
             triangleObject.hole.y2,
-            circleObject.hole.size/2
+            shapeHoleSpace.minDiff
         );
 
-        let isP3Overlap = isCirclePointOverlap(
+        let isP3Overlap = isCirclePointClose(
             circleObject.hole.x,
             circleObject.hole.y,
             triangleObject.hole.x3,
             triangleObject.hole.y3,
-            circleObject.hole.size/2
+            shapeHoleSpace.minDiff
         );
 
-        let dCircleX = abs(triangleObject.hole.xCenter - circleObject.hole.x);
-        let dCircleY = abs(triangleObject.hole.yCenter - squareObject.hole.y);
-        //make sure that the minimum distance is respected AND none of the points are within the circle
-        let circleFarEnough = (dCircleX > shapeHoleSpace.minDiff || dCircleY > shapeHoleSpace.minDiff) && !isP1Overlap && !isP2Overlap && !isP3Overlap;
+        let circleFarEnough = !isP1Overlap && !isP2Overlap && !isP3Overlap;
 
         if (squareFarEnough && circleFarEnough) {
             break;
@@ -1069,7 +1070,7 @@ function mousePressed(evt) {
         }
         
         if (
-            isCirclePointOverlap(circleObject.moving.x, circleObject.moving.y, mouseX, mouseY, circleObject.moving.size/2)
+            isCirclePointClose(circleObject.moving.x, circleObject.moving.y, mouseX, mouseY, circleObject.moving.size/2)
             && !circleObject.moving.isDisappear
         ) {
             circleObject.moving.isMoving = true;
@@ -1093,7 +1094,7 @@ function mousePressed(evt) {
  * @param {MouseEvent} evt 
  */
 function mouseReleased(evt) {
-    if (evt.button == 0 && squareObject.moving.isDisappear && circleObject.moving.isDisappear && triangleObject.moving.isDisappear) {
+    if (evt.button == 0 && isDone) {
         if (isRectPointOverlap(reloadBtn, mouseX, mouseY, reloadBtn.w, reloadBtn.h)) {
             location.reload();
         }
@@ -1103,17 +1104,25 @@ function mouseReleased(evt) {
             if (isTrianglePointOverlap(triangleObject.hole, mouseX, mouseY)) { 
                 triangleObject.moving.isMisplaced = false;
                 triangleObject.moving.isDisappear = true;
-                clownBoy.isHappy = true;
-                startFlowerTimer = true;
-                flowerTimer = maxTimer;
+                isDone = squareObject.moving.isDisappear && circleObject.moving.isDisappear && triangleObject.moving.isDisappear;
+
+                if (!isDone) {
+                    clownBoy.isHappy = true;
+                    startFlowerTimer = true;
+                    flowerTimer = maxTimer;
+                }
             }
             else if (isRectPointOverlap(squareObject.hole, mouseX, mouseY, squareObject.hole.size, squareObject.hole.size)) {
                 triangleObject.moving.isMisplaced = true;
                 triangleObject.moving.isDisappear = true;
-                startDispleasedTimer = true;
+                isDone = squareObject.moving.isDisappear && circleObject.moving.isDisappear && triangleObject.moving.isDisappear;
                 ++countInSquareHole;
+
+                if (!isDone) {
+                    startDispleasedTimer = true;
+                }
             }
-            else if (isCirclePointOverlap(circleObject.hole.x, circleObject.hole.y, mouseX, mouseY, circleObject.hole.size/2)) {
+            else if (isCirclePointClose(circleObject.hole.x, circleObject.hole.y, mouseX, mouseY, circleObject.hole.size/2)) {
                 triangleObject.moving.isMisplaced = true;
             }
             else {
@@ -1124,18 +1133,26 @@ function mouseReleased(evt) {
         }
         
         if (circleObject.moving.isMoving) {
-            if (isCirclePointOverlap(circleObject.hole.x, circleObject.hole.y, mouseX, mouseY, circleObject.hole.size/2)) {
+            if (isCirclePointClose(circleObject.hole.x, circleObject.hole.y, mouseX, mouseY, circleObject.hole.size/2)) {
                 circleObject.moving.isMisplaced = false;
                 circleObject.moving.isDisappear = true;
-                clownBoy.isHappy = true;
-                startFlowerTimer = true;
-                flowerTimer = maxTimer;
+                isDone = squareObject.moving.isDisappear && circleObject.moving.isDisappear && triangleObject.moving.isDisappear;
+                
+                if (!isDone) {
+                    clownBoy.isHappy = true;
+                    startFlowerTimer = true;
+                    flowerTimer = maxTimer;
+                }
             }
             else if (isRectPointOverlap(squareObject.hole, mouseX, mouseY, squareObject.hole.size, squareObject.hole.size)) {
                 circleObject.moving.isMisplaced = true;
                 circleObject.moving.isDisappear = true;
-                startDispleasedTimer = true;
+                isDone = squareObject.moving.isDisappear && circleObject.moving.isDisappear && triangleObject.moving.isDisappear;
                 ++countInSquareHole;
+
+                if (!isDone) {
+                    startDispleasedTimer = true;
+                }
             }
             else if (isTrianglePointOverlap(triangleObject.hole, mouseX, mouseY)) {
                 circleObject.moving.isMisplaced = true;
@@ -1151,13 +1168,17 @@ function mouseReleased(evt) {
             if (isRectPointOverlap(squareObject.hole, mouseX, mouseY, squareObject.hole.size, squareObject.hole.size)) {
                 squareObject.moving.isMisplaced = false;
                 squareObject.moving.isDisappear = true;
-                clownBoy.isHappy = true;
-                startFlowerTimer = true;
-                flowerTimer = maxTimer;
+                isDone = squareObject.moving.isDisappear && circleObject.moving.isDisappear && triangleObject.moving.isDisappear;
+                
+                if (!isDone) {
+                    clownBoy.isHappy = true;
+                    startFlowerTimer = true;
+                    flowerTimer = maxTimer;
+                }
             }
             else if (
                 isTrianglePointOverlap(triangleObject.hole, mouseX, mouseY) 
-                || isCirclePointOverlap(circleObject.hole.x, circleObject.hole.y, mouseX, mouseY, circleObject.hole.size/2)
+                || isCirclePointClose(circleObject.hole.x, circleObject.hole.y, mouseX, mouseY, circleObject.hole.size/2)
             ) {
                 squareObject.moving.isMisplaced = true;
             }
@@ -1168,7 +1189,7 @@ function mouseReleased(evt) {
             squareObject.moving.isMoving = false;
         }
 
-        if (triangleObject.moving.isMisplaced || circleObject.moving.isMisplaced || squareObject.moving.isMisplaced) {
+        if (!isDone && (triangleObject.moving.isMisplaced || circleObject.moving.isMisplaced || squareObject.moving.isMisplaced)) {
             clownBoy.isDispleased = true;
         }
         else {
@@ -1236,13 +1257,13 @@ function getTriangleArea(x1, y1, x2, y2, x3, y3) {
  * @param {Number} yCircle y coordinate of the circle
  * @param {Number} xP x coordinate of the point
  * @param {Number} yP y coordinate of the point
- * @param {Number} radius radius of the circle
+ * @param {Number} closeDist the distance past which the point is considered close
  * @returns 
  */
-function isCirclePointOverlap(xCircle, yCircle, xP, yP, radius) {
+function isCirclePointClose(xCircle, yCircle, xP, yP, closeDist) {
     let d = dist(xCircle, yCircle, xP, yP);
     
-    return d <= radius;
+    return d <= closeDist;
 }
 
 /**
