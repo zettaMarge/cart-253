@@ -52,6 +52,7 @@ MVP (* => lower priority):
     - eyes; normal, stunned, game over
     - mouth; different-colored line
     - tongue; circle at the end
+    - on lilypad
 5. QoL
     - frog stays within bounds of canvas
     - *title screen
@@ -63,3 +64,7 @@ Bonus:
     - if MouseRelease, retract (down to frog's y coordinate)
 2. QoL
     - visually bringing the fly back to the frog’s mouth on capture
+3. Evil Frog boss battle
+    - dis/appears on some interval at the top of the screen
+    - random x coordinate based on player's current position?
+    - if its tongue hits you, your stomach empties by some amount

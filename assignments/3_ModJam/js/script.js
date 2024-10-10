@@ -28,7 +28,15 @@ const frog = {
         size: 20,
         speed: 20,
         // Determines how the tongue moves each frame
-        state: "idle" // State can be: idle, outbound, inbound
+        state: frogStates.IDLE
+    },
+    // The frog's stomach; how empty it is and can get, how fast it empties, and how much the frog has eaten
+    stomach: {
+        emptySize: 50,
+        initSize: 50,
+        maxSize: 115,
+        emptyRate: 0.05,
+        fliesEatenCount: 0
     }
 };
 
@@ -38,17 +46,41 @@ const fly = {
     x: 0,
     y: 200, // Will be random
     size: 10,
-    speed: 3
+    speed: 3,
+    foodValue: undefined,
 };
+
+// Various images used in the game
+// Each has a p5 Image source object, and size
+const images = {
+    stomach: {
+        src: undefined,
+        w: 250,
+        h: 250
+    },
+    stomachFill: {
+        src: undefined,
+        w: 250,
+        h: 250
+    },
+}
 
 /**
  * Creates the canvas and initializes the fly
  */
 function setup() {
-    createCanvas(640, 480);
-
+    createCanvas(960, 800);
+    preload();
     // Give the fly its first random position
     resetFly();
+}
+
+/**
+ * Preloads various assets
+ */
+function preload() {
+    images.stomach.src = loadImage("img/stomach.png");
+    images.stomachFill.src = loadImage("img/stomach-fill.png");
 }
 
 function draw() {
@@ -59,6 +91,9 @@ function draw() {
     moveTongue();
     drawFrog();
     checkTongueFlyOverlap();
+
+    changeStomachSize(frog.stomach.emptyRate);
+    drawStomach();
 }
 
 /**
@@ -107,23 +142,23 @@ function moveTongue() {
     // Tongue matches the frog's x
     frog.tongue.x = frog.body.x;
     // If the tongue is idle, it doesn't do anything
-    if (frog.tongue.state === "idle") {
+    if (frog.tongue.state === frogStates.IDLE) {
         // Do nothing
     }
     // If the tongue is outbound, it moves up
-    else if (frog.tongue.state === "outbound") {
+    else if (frog.tongue.state === frogStates.OUTBOUND) {
         frog.tongue.y += -frog.tongue.speed;
         // The tongue bounces back if it hits the top
         if (frog.tongue.y <= 0) {
-            frog.tongue.state = "inbound";
+            frog.tongue.state = frogStates.INBOUND;
         }
     }
     // If the tongue is inbound, it moves down
-    else if (frog.tongue.state === "inbound") {
+    else if (frog.tongue.state === frogStates.INBOUND) {
         frog.tongue.y += frog.tongue.speed;
         // The tongue stops if it hits the bottom
         if (frog.tongue.y >= height) {
-            frog.tongue.state = "idle";
+            frog.tongue.state = frogStates.IDLE;
         }
     }
 }
@@ -166,7 +201,7 @@ function checkTongueFlyOverlap() {
         // Reset the fly
         resetFly();
         // Bring back the tongue
-        frog.tongue.state = "inbound";
+        frog.tongue.state = frogStates.INBOUND;
     }
 }
 
@@ -174,7 +209,49 @@ function checkTongueFlyOverlap() {
  * Launch the tongue on click (if it's not launched yet)
  */
 function mousePressed() {
-    if (frog.tongue.state === "idle") {
-        frog.tongue.state = "outbound";
+    if (frog.tongue.state === frogStates.IDLE) {
+        frog.tongue.state = frogStates.OUTBOUND;
     }
+}
+
+/**
+ * Increase/Decrease stomach's empty size by some amount
+ * Positive (+) value empties the stomach
+ * Negative (-) value fills the stomach
+ * @param {Number} sizeIncr amount to change size by
+ */
+function changeStomachSize(sizeIncr) {
+    frog.stomach.emptySize = constrain(
+        frog.stomach.emptySize + sizeIncr,
+        0,
+        frog.stomach.maxSize
+    );
+}
+
+/**
+ * Draws the frog's stomach in the bottom left corner of the canvas
+ */
+function drawStomach() {
+    // Line connecting icon to frog?
+    
+    // Circle icon background
+    push();
+    strokeWeight(4);
+    stroke(240)
+    fill("#7ba6b8")
+    ellipse(width - 152.5, height - 140, 298, 273);
+    pop();
+
+    // Filled insides png
+    image(images.stomachFill.src, width - 260, height - 273, images.stomachFill.w, images.stomachFill.h);
+
+    // Black rectangle for emptying stomach
+    push();
+    noStroke();
+    fill(0);
+    rect(width - 130, height - 200, 80, frog.stomach.emptySize);
+    pop();
+
+    // Stomach with transparent hole png
+    image(images.stomach.src, width - 260, height - 273, images.stomach.w, images.stomach.h);
 }
