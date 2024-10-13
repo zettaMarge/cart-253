@@ -41,13 +41,21 @@ const frog = {
 };
 
 // Our fly
-// Has a position, size, and speed of horizontal movement
+// Has a position, size, speed of horizontal movement, and possibility of moving in a wavy pattern
 const fly = {
     x: 0,
     y: 200, // Will be random
     size: 10,
-    speed: 3,
+    speed: 3, // Will be adjusted depending on direction (+/-)
+    minSpeed: 3,
+    maxSpeed: 5,
     foodValue: 5,
+    wavePattern: {
+        enabled: false,
+        angle: 0,
+        angleMod: 0.075,
+        heightMod: 5
+    }
 };
 
 // The button to reinitialize the game
@@ -94,6 +102,9 @@ const images = {
 // What function to call based on the game's state
 let gameStateFunc = gameOngoing;
 
+// How many seconds the game has been running
+let gameTime = 0;
+
 /**
  * Creates the canvas and initializes the fly
  */
@@ -124,13 +135,13 @@ function draw() {
  * The frog and fly can move, and the stomach's contents vary
  */
 function gameOngoing() {
+    advanceGameTime();
     moveFly();
     drawFly();
     moveFrog();
     moveTongue();
     drawFrog();
     checkTongueFlyOverlap();
-
     changeStomachSize(frog.stomach.emptyRate);
     drawStomach();
     checkStomachEmpty();
@@ -151,10 +162,17 @@ function gameOver() {
  * Resets the fly if it gets all the way to the right
  */
 function moveFly() {
-    // Move the fly
+    // Move the fly horizontally
     fly.x += fly.speed;
+
+    // Move the fly vertically
+    if (fly.wavePattern.enabled) { 
+        fly.y += cos(fly.wavePattern.angle) * fly.wavePattern.heightMod
+        fly.wavePattern.angle -= fly.wavePattern.angleMod;
+    }
+
     // Handle the fly going off the canvas
-    if (fly.x > width) {
+    if ((fly.speed > 0 && fly.x > width) || (fly.speed < 0 && fly.x < 0)) {
         resetFly();
     }
 }
@@ -171,11 +189,30 @@ function drawFly() {
 }
 
 /**
- * Resets the fly to the left with a random y
+ * Resets the fly either to the left or right with a random y,
+ * speed, and if it's flying in a wave pattern or not
  */
 function resetFly() {
-    fly.x = 0;
-    fly.y = random(0, 300);
+    fly.wavePattern.enabled = random([true, false]);
+    fly.x = random([0, width]);
+
+    if (fly.wavePattern.enabled) {
+        // We don't want the fly to end up offscreen or too close to the frog while moving up and down
+        fly.wavePattern.angle = 0;
+        fly.y = random(125, 200);
+    }
+    else {
+        fly.y = random(10, 300);
+    }
+    
+    if (fly.x === width) {
+        // Coming in from the right, will move left
+        fly.speed = -1 * random(fly.minSpeed, fly.maxSpeed);
+    }
+    else {
+        // Coming in from the left, will move right
+        fly.speed = random(fly.minSpeed, fly.maxSpeed);
+    }
 }
 
 /**
@@ -341,6 +378,15 @@ function checkStomachEmpty() {
 }
 
 /**
+ * Increments the game time for every second that passes
+ */
+function advanceGameTime() {
+    if (frameCount % 60 === 0) {
+        ++gameTime;
+    }
+}
+
+/**
  * Returns if a point overlaps a rectangle
  * @param {Number} xR x coordinate of the rectangle
  * @param {Number} yR y coordinate of the rectangle
@@ -388,8 +434,8 @@ function drawGameOverTxt() {
     fill(0);
     stroke(0);
     strokeWeight(1.5);
-    textSize(40);
-    text(`You've managed to eat ${fliesEatenStr} before croaking it.`, width/2, 125);
+    textSize(36);
+    text(`You've managed to eat ${fliesEatenStr}\nand live a long life of ${gameTime} seconds\nbefore croaking it.`, width/2, 165);
     pop();
 }
 
@@ -432,6 +478,7 @@ function drawRetryBtn() {
  * Reinitializes the game to its default state
  */
 function resetGame() {
+    gameTime = 0;
     frog.stomach.emptySize = frog.stomach.initSize;
     frog.stomach.fliesEatenCount = 0;
     frog.tongue.state = frogStates.IDLE
