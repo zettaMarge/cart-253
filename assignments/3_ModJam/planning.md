@@ -47,7 +47,7 @@ MVP (* => lower priority):
     - if eaten, stuns the frog for a time and can't extend tongue
     - can appear at same time as fly
     - visual: bigger than flies, yellow, pointy
-    - visual: tongue disappears immediately/doesn't retract like with the flies
+    - visual: tongue sluggishly retracts when wasp is eaten
 4. improved frog visuals
     - eyes; normal, stunned, game over
     - mouth; different-colored line

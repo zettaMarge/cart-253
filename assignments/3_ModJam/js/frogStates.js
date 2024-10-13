@@ -1,7 +1,7 @@
 /**
  * "Enum" class for the states the frog can be in
  */
-class frogStates {
+class FrogStates {
     static #_IDLE = 0;
     static #_OUTBOUND = 1;
     static #_INBOUND = 2;

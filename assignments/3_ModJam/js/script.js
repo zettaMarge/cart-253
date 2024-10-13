@@ -21,14 +21,16 @@ const frog = {
         y: 520,
         size: 150
     },
-    // The frog's tongue has a position, size, speed, and state
+    // The frog's tongue has a position, size, speed, state, and stun timer
     tongue: {
         x: undefined,
         y: 480,
         size: 20,
         speed: 20,
         // Determines how the tongue moves each frame
-        state: frogStates.IDLE
+        state: FrogStates.IDLE,
+        stunTimer: 3,
+        initTimer: 3
     },
     // The frog's stomach; how empty it is and can get, how fast it empties, and how much the frog has eaten
     stomach: {
@@ -41,22 +43,10 @@ const frog = {
 };
 
 // Our fly
-// Has a position, size, speed of horizontal movement, and possibility of moving in a wavy pattern
-const fly = {
-    x: 0,
-    y: 200, // Will be random
-    size: 10,
-    speed: 3, // Will be adjusted depending on direction (+/-)
-    minSpeed: 3,
-    maxSpeed: 5,
-    foodValue: 5,
-    wavePattern: {
-        enabled: false,
-        angle: 0,
-        angleMod: 0.075,
-        heightMod: 5
-    }
-};
+const fly = new Fly();
+
+// The dreaded wasp
+const wasp = new Wasp();
 
 // The button to reinitialize the game
 // Its position is based on the canvas' size, so it can't be initialized here
@@ -112,8 +102,9 @@ function setup() {
     createCanvas(960, 800);
     rectMode(CENTER);
     preload();
-    // Give the fly its first random position
-    resetFly();
+    // Give the bugs their first random position
+    fly.resetBug();
+    wasp.resetBug();
 }
 
 /**
@@ -126,7 +117,6 @@ function preload() {
 
 function draw() {
     background("#87ceeb");
-    
     gameStateFunc();
 }
 
@@ -136,12 +126,15 @@ function draw() {
  */
 function gameOngoing() {
     advanceGameTime();
-    moveFly();
-    drawFly();
+    fly.moveBug();
+    fly.drawBug();
+    wasp.moveBug();
+    wasp.drawBug();
     moveFrog();
     moveTongue();
     drawFrog();
-    checkTongueFlyOverlap();
+    fly.checkTongueOverlap();
+    wasp.checkTongueOverlap();
     changeStomachSize(frog.stomach.emptyRate);
     drawStomach();
     checkStomachEmpty();
@@ -158,64 +151,6 @@ function gameOver() {
 }
 
 /**
- * Moves the fly according to its speed
- * Resets the fly if it gets all the way to the right
- */
-function moveFly() {
-    // Move the fly horizontally
-    fly.x += fly.speed;
-
-    // Move the fly vertically
-    if (fly.wavePattern.enabled) { 
-        fly.y += cos(fly.wavePattern.angle) * fly.wavePattern.heightMod
-        fly.wavePattern.angle -= fly.wavePattern.angleMod;
-    }
-
-    // Handle the fly going off the canvas
-    if ((fly.speed > 0 && fly.x > width) || (fly.speed < 0 && fly.x < 0)) {
-        resetFly();
-    }
-}
-
-/**
- * Draws the fly as a black circle
- */
-function drawFly() {
-    push();
-    noStroke();
-    fill("#000000");
-    ellipse(fly.x, fly.y, fly.size);
-    pop();
-}
-
-/**
- * Resets the fly either to the left or right with a random y,
- * speed, and if it's flying in a wave pattern or not
- */
-function resetFly() {
-    fly.wavePattern.enabled = random([true, false]);
-    fly.x = random([0, width]);
-
-    if (fly.wavePattern.enabled) {
-        // We don't want the fly to end up offscreen or too close to the frog while moving up and down
-        fly.wavePattern.angle = 0;
-        fly.y = random(125, 200);
-    }
-    else {
-        fly.y = random(10, 300);
-    }
-    
-    if (fly.x === width) {
-        // Coming in from the right, will move left
-        fly.speed = -1 * random(fly.minSpeed, fly.maxSpeed);
-    }
-    else {
-        // Coming in from the left, will move right
-        fly.speed = random(fly.minSpeed, fly.maxSpeed);
-    }
-}
-
-/**
  * Moves the frog to the mouse position on x
  */
 function moveFrog() {
@@ -229,23 +164,39 @@ function moveTongue() {
     // Tongue matches the frog's x
     frog.tongue.x = frog.body.x;
     // **EDIT If the tongue is idle, it stays aligned with the frog's y coordinate
-    if (frog.tongue.state === frogStates.IDLE) {
+    if (frog.tongue.state === FrogStates.IDLE) {
         frog.tongue.y = frog.body.y;
     }
     // If the tongue is outbound, it moves up
-    else if (frog.tongue.state === frogStates.OUTBOUND) {
+    else if (frog.tongue.state === FrogStates.OUTBOUND) {
         frog.tongue.y += -frog.tongue.speed;
         // The tongue bounces back if it hits the top
         if (frog.tongue.y <= 0) {
-            frog.tongue.state = frogStates.INBOUND;
+            frog.tongue.state = FrogStates.INBOUND;
         }
     }
     // If the tongue is inbound, it moves down
-    else if (frog.tongue.state === frogStates.INBOUND) {
+    else if (frog.tongue.state === FrogStates.INBOUND) {
         frog.tongue.y += frog.tongue.speed;
         // **EDIT The tongue stops once it gets back to the frog
         if (frog.tongue.y >= frog.body.y) {
-            frog.tongue.state = frogStates.IDLE;
+            frog.tongue.state = FrogStates.IDLE;
+        }
+    }
+    // If the frog is stunned, there's a timer before it returns to idle
+    else if (frog.tongue.state === FrogStates.STUNNED) {
+        if (frameCount % 60 == 0 && frog.tongue.stunTimer > 0) {
+            --frog.tongue.stunTimer;
+        }
+
+        if (frog.tongue.stunTimer == 0) {
+            frog.tongue.stunTimer = frog.tongue.initTimer;
+            frog.tongue.state = FrogStates.IDLE;
+        }
+
+        // Return the tongue to the frog, but slightly slower
+        if (frog.tongue.y < frog.body.y) {
+            frog.tongue.y += frog.tongue.speed/3;
         }
     }
 }
@@ -286,32 +237,13 @@ function drawFrogBody(x = frog.body.x, y = frog.body.y) {
 }
 
 /**
- * Handles the tongue overlapping the fly
- */
-function checkTongueFlyOverlap() {
-    // Get distance from tongue to fly
-    const d = dist(frog.tongue.x, frog.tongue.y, fly.x, fly.y);
-    // Check if it's an overlap
-    const eaten = (d < frog.tongue.size/2 + fly.size/2);
-    if (eaten) {
-        // Reset the fly
-        resetFly();
-        // Bring back the tongue
-        frog.tongue.state = frogStates.INBOUND;
-        // Fill up the stomach a bit & add a fly to the counter
-        changeStomachSize(-fly.foodValue)
-        ++frog.stomach.fliesEatenCount
-    }
-}
-
-/**
  * Event when a bouse button is pressed
  */
 function mousePressed() {
     if (gameStateFunc === gameOngoing) {
-        // Launch the tongue on click (if it's not launched yet)
-        if (frog.tongue.state === frogStates.IDLE) {
-            frog.tongue.state = frogStates.OUTBOUND;
+        // Launch the tongue on click (if it's not launched yet and idle)
+        if (frog.tongue.state === FrogStates.IDLE) {
+            frog.tongue.state = FrogStates.OUTBOUND;
         }
     }
     else if (gameStateFunc === gameOver) {
@@ -408,6 +340,24 @@ function isRectPointOverlap(xR, yR, xP, yP, w, h) {
 }
 
 /**
+ * Returns the area of a triangle
+ * @param {Number} x1 x coordinate of the first vertex
+ * @param {Number} y1 y coordinate of the first vertex
+ * @param {Number} x2 x coordinate of the second vertex
+ * @param {Number} y2 y coordinate of the second vertex
+ * @param {Number} x3 x coordinate of the third vertex
+ * @param {Number} y3 y coordinate of the third vertex
+ * @returns 
+ */
+function getTriangleArea(x1, y1, x2, y2, x3, y3) {
+    return abs((
+        x1 * (y2 - y3)
+        + x2 * (y3 - y1)
+        + x3 * (y1 - y2)
+    ) / 2.0);
+}
+
+/**
  * Draws a big GAME OVER and how many flies were eaten
  */
 function drawGameOverTxt() {
@@ -478,10 +428,18 @@ function drawRetryBtn() {
  * Reinitializes the game to its default state
  */
 function resetGame() {
+    // Reset the timer
     gameTime = 0;
+
+    // Reset the frog
     frog.stomach.emptySize = frog.stomach.initSize;
     frog.stomach.fliesEatenCount = 0;
-    frog.tongue.state = frogStates.IDLE
-    resetFly();
+    frog.tongue.state = FrogStates.IDLE
+
+    // Reset the bugs
+    fly.resetBug();
+    wasp.resetBug();
+
+    // Restart the game
     gameStateFunc = gameOngoing;
 }
