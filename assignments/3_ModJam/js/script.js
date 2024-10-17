@@ -15,8 +15,8 @@
 
 // Our frog
 const frog = {
-    // The frog's body has a position and size
-    body: {
+    // The frog's head has a position and size
+    head: {
         x: 320,
         y: 520,
         size: 150
@@ -57,9 +57,9 @@ const retryBtn = {
     h: 100,
     stroke: {
         weight: 7.5,
-        r: 0,
-        g: 0,
-        b: 0,
+        r: 77,
+        g: 130,
+        b: 47,
         a: 255
     },
     fill: {
@@ -125,6 +125,8 @@ function draw() {
  * The frog and fly can move, and the stomach's contents vary
  */
 function gameOngoing() {
+    frog.head.y = 520;
+
     advanceGameTime();
     fly.moveBug();
     fly.drawBug();
@@ -132,6 +134,7 @@ function gameOngoing() {
     wasp.drawBug();
     moveFrog();
     moveTongue();
+    drawLilypad();
     drawFrog();
     fly.checkTongueOverlap();
     wasp.checkTongueOverlap();
@@ -145,8 +148,14 @@ function gameOngoing() {
  * Shows the dead frog, how many flies were eaten, and a button to retry
  */
 function gameOver() {
+    frog.head.x = width/2;
+    frog.head.y = height/2;
+
+    frog.tongue.x = frog.head.x;
+    frog.tongue.y = frog.head.y - 92.5;
+
     drawGameOverTxt();
-    drawFrogBody(width/2, height/2);
+    drawFrog();
     drawRetryBtn();
 }
 
@@ -154,7 +163,7 @@ function gameOver() {
  * Moves the frog to the mouse position on x
  */
 function moveFrog() {
-    frog.body.x = mouseX;
+    frog.head.x = mouseX;
 }
 
 /**
@@ -162,10 +171,10 @@ function moveFrog() {
  */
 function moveTongue() {
     // Tongue matches the frog's x
-    frog.tongue.x = frog.body.x;
+    frog.tongue.x = frog.head.x;
     // **EDIT If the tongue is idle, it stays aligned with the frog's y coordinate
     if (frog.tongue.state === FrogStates.IDLE) {
-        frog.tongue.y = frog.body.y;
+        frog.tongue.y = frog.head.y;
     }
     // If the tongue is outbound, it moves up
     else if (frog.tongue.state === FrogStates.OUTBOUND) {
@@ -179,7 +188,7 @@ function moveTongue() {
     else if (frog.tongue.state === FrogStates.INBOUND) {
         frog.tongue.y += frog.tongue.speed;
         // **EDIT The tongue stops once it gets back to the frog
-        if (frog.tongue.y >= frog.body.y) {
+        if (frog.tongue.y >= frog.head.y) {
             frog.tongue.state = FrogStates.IDLE;
         }
     }
@@ -195,14 +204,14 @@ function moveTongue() {
         }
 
         // Return the tongue to the frog, but slightly slower
-        if (frog.tongue.y < frog.body.y) {
+        if (frog.tongue.y < frog.head.y) {
             frog.tongue.y += frog.tongue.speed/3;
         }
     }
 }
 
 /**
- * Displays the tongue (tip and line connection) and the frog (body)
+ * Displays the tongue (tip and line connection) and the frog
  */
 function drawFrog() {
     // Draw the tongue tip
@@ -215,24 +224,208 @@ function drawFrog() {
     // Draw the rest of the tongue
     push();
     stroke("#ff0000");
-    strokeWeight(frog.tongue.size);
-    line(frog.tongue.x, frog.tongue.y, frog.body.x, frog.body.y);
+    strokeWeight(frog.tongue.size/2);
+    line(frog.tongue.x, frog.tongue.y, frog.head.x, frog.head.y);
     pop();
-
+    
     drawFrogBody();
+    drawFrogHead();
 }
 
 /**
- * Draws the frog's body at a certain position
- * By default, the position is the one store in the frog object
- * @param {Number} x x coordinate
- * @param {Number} y y coordinate
+ * Draws the frog's body, based on the position of the head
  */
-function drawFrogBody(x = frog.body.x, y = frog.body.y) {
+function drawFrogBody() {
+    // The toes
     push();
-    fill("#00ff00");
+    fill("#629645");
+    stroke("#4d822f");
+    // Front left leg
+    ellipse(frog.head.x - 80, frog.head.y, 15);
+    ellipse(frog.head.x - 97.5, frog.head.y, 15);
+    ellipse(frog.head.x - 107.5, frog.head.y + 12.5, 15);
+
+    // Back left leg
+    ellipse(frog.head.x - 97.5, frog.head.y + 85, 15);
+    ellipse(frog.head.x - 92.5, frog.head.y + 99, 15);
+    ellipse(frog.head.x - 80, frog.head.y + 107.5, 15);
+
+    // Front right leg
+    ellipse(frog.head.x + 80, frog.head.y, 15);
+    ellipse(frog.head.x + 97.5, frog.head.y, 15);
+    ellipse(frog.head.x + 107.5, frog.head.y + 12.5, 15);
+
+    // Back right leg
+    ellipse(frog.head.x + 97.5, frog.head.y + 85, 15);
+    ellipse(frog.head.x + 92.5, frog.head.y + 99, 15);
+    ellipse(frog.head.x + 80, frog.head.y + 107.5, 15);
+    pop();
+
+    // The legs
+    push();
+    fill("#78b854");
+    stroke("#4d822f");
+    // The left legs
+    arc(frog.head.x - 85, frog.head.y + 25, 50, 50, HALF_PI + PI/9, 0);
+    arc(frog.head.x - 75, frog.head.y + 85, 45, 45, HALF_PI - PI/9, PI + QUARTER_PI);
+
+    // The right legs
+    arc(frog.head.x + 85, frog.head.y + 25, 50, 50, PI + QUARTER_PI, HALF_PI - PI/9);
+    arc(frog.head.x + 75, frog.head.y + 85, 45, 45, 0 - QUARTER_PI, HALF_PI + PI/9);
+    pop();
+
+    // The body
+    push();
+    fill("#78b854");
+    stroke("#4d822f");
+    ellipse(frog.head.x, frog.head.y + frog.head.size/3, frog.head.size * 1.25, frog.head.size * 1.1);
+    arc(frog.head.x, frog.head.y + frog.head.size/1.25, 100, 45, 0, PI);
+    pop();
+
+    push();
+    fill("#78b854");
     noStroke();
-    ellipse(x, y, frog.body.size);
+    ellipse(frog.head.x - 80, frog.head.y + 22.5, 40);
+    ellipse(frog.head.x - 75, frog.head.y + 85, 35)
+    ellipse(frog.head.x + 80, frog.head.y + 22.5, 40);
+    ellipse(frog.head.x + 75, frog.head.y + 85, 35);
+    pop();
+}
+
+/**
+ * Draws the frog's head
+ */
+function drawFrogHead() {
+    // The mouth
+    push();
+    fill("#4d822f");
+    noStroke();
+    ellipse(frog.head.x, frog.head.y - frog.head.size/2 + 5, frog.head.size/2 + 12.5, 20);
+    pop();
+    
+    // The head
+    push();
+    fill("#78b854");
+    stroke("#4d822f");
+    strokeWeight(1.5);
+    ellipse(frog.head.x, frog.head.y, frog.head.size);
+    pop();
+
+    push();
+    fill("#78b854");
+    noStroke();
+    arc(frog.head.x, frog.head.y + 20, frog.head.size, frog.head.size, 0, PI);
+    pop();
+
+    // The nostrils
+    push();
+    fill("#4d822f");
+    noStroke();
+    ellipse(frog.head.x - 10, frog.head.y - 52.5, 10);
+    ellipse(frog.head.x + 10, frog.head.y - 52.5, 10);
+    pop();
+
+    drawFrogEyes();
+}
+
+/**
+ * Draws the frog's eyes based on the frog's state
+ */
+function drawFrogEyes() {
+    // The eyelids
+    push();
+    fill("#4d822f");
+    noStroke();
+    ellipse(frog.head.x - 55, frog.head.y - 15, 50);
+    ellipse(frog.head.x + 55, frog.head.y - 15, 50);
+    pop();
+
+    // The sclera
+    push();
+    fill(255);
+    noStroke();
+    arc(frog.head.x - 55, frog.head.y - 21, 47.5, 25, 0, PI);
+    arc(frog.head.x + 55, frog.head.y - 21, 47.5, 25, 0, PI);
+    pop();
+
+    // The iris
+    push();
+    fill("#dbb753");
+    noStroke();
+    arc(frog.head.x - 55, frog.head.y - 20, 47.5, 40, PI, 0);
+    arc(frog.head.x - 55, frog.head.y - 20, 47.5, 15, 0, PI);
+
+    arc(frog.head.x + 55, frog.head.y - 20, 47.5, 40, PI, 0);
+    arc(frog.head.x + 55, frog.head.y - 20, 47.5, 15, 0, PI);
+    pop();
+
+    // The pupils
+    push();
+    if (frog.tongue.state === FrogStates.STUNNED && frog.stomach.emptySize < frog.stomach.maxSize) {
+        // The frog is dizzy
+        fill(255);
+        stroke(0);
+        strokeWeight(1.5);
+        // The left eye
+        ellipse(frog.head.x - 55, frog.head.y - 32.5, 30, 7.5);
+        ellipse(frog.head.x - 55, frog.head.y - 32.5, 15, 2.5);
+
+        // The right eye
+        ellipse(frog.head.x + 55, frog.head.y - 32.5, 30, 7.5);
+        ellipse(frog.head.x + 55, frog.head.y - 32.5, 15, 2.5);
+    }
+    else if (frog.stomach.emptySize >= frog.stomach.maxSize) {
+        // The frog is dead :(
+        stroke(0);
+        strokeWeight(4);
+        // The left eye
+        line(
+            frog.head.x - 60, frog.head.y - 35,
+            frog.head.x - 50, frog.head.y - 30
+        );
+        line(
+            frog.head.x - 50, frog.head.y - 30,
+            frog.head.x - 60, frog.head.y - 25
+        );
+
+        // The right eye
+        line(
+            frog.head.x + 60, frog.head.y - 35,
+            frog.head.x + 50, frog.head.y - 30
+        );
+        line(
+            frog.head.x + 50, frog.head.y - 30,
+            frog.head.x + 60, frog.head.y - 25
+        );
+    }
+    else {
+        // The frog is fine
+        fill(0);
+        stroke(255);
+        ellipse(frog.head.x - 55, frog.head.y - 32.5, 30, 7.5);
+        ellipse(frog.head.x + 55, frog.head.y - 32.5, 30, 7.5);
+    }
+    pop();
+}
+
+/**
+ * Draws a lilypad under the frog
+ */
+function drawLilypad() {
+    push();
+    fill("#81a345");
+    noStroke();
+    ellipse(frog.head.x, frog.head.y + 50, frog.head.size * 2);
+    pop();
+
+    push();
+    fill("#87ceeb");
+    noStroke();
+    triangle(
+        frog.head.x - 25, frog.head.y + 50,
+        frog.head.x - frog.head.size, frog.head.y + 10,
+        frog.head.x - frog.head.size, frog.head.y + 90
+    );
     pop();
 }
 
@@ -272,7 +465,14 @@ function changeStomachSize(sizeIncr) {
  * Draws the frog's stomach in the bottom left corner of the canvas
  */
 function drawStomach() {
-    // Line connecting icon to frog?
+    // Line connecting the icon to the frog
+    push();
+    noFill();
+    stroke(255, 255, 255);
+    strokeWeight(5);
+    ellipse(frog.head.x, frog.head.y + frog.head.size/2.5, 7.5);
+    line(width - 152.5, height - 140, frog.head.x, frog.head.y + frog.head.size/2.5);
+    pop();
     
     // Circle icon background
     push();
@@ -363,7 +563,7 @@ function getTriangleArea(x1, y1, x2, y2, x3, y3) {
 function drawGameOverTxt() {
     push();
     textAlign(CENTER, CENTER);
-    fill(0);
+    fill("#4d822f");
     stroke(0);
     strokeWeight(3.5);
     textSize(72);
@@ -381,9 +581,9 @@ function drawGameOverTxt() {
 
     push();
     textAlign(CENTER, CENTER);
-    fill(0);
+    fill("#4d822f");
     stroke(0);
-    strokeWeight(1.5);
+    strokeWeight(2.5);
     textSize(36);
     text(`You've managed to eat ${fliesEatenStr}\nand live a long life of ${gameTime} seconds\nbefore croaking it.`, width/2, 165);
     pop();
@@ -408,16 +608,23 @@ function drawRetryBtn() {
     }
 
     push();
-    stroke(retryBtn.stroke.r, retryBtn.stroke.g, retryBtn.stroke.b, retryBtn.stroke.a);
+    stroke(0, 0, 0, retryBtn.fill.a);
     strokeWeight(retryBtn.stroke.weight);
     fill(retryBtn.fill.r, retryBtn.fill.g, retryBtn.fill.b, retryBtn.fill.a);
+    rect(retryBtn.x, retryBtn.y, retryBtn.w + 7.5, retryBtn.h + 7.5);
+    pop();
+
+    push();
+    stroke(retryBtn.stroke.r, retryBtn.stroke.g, retryBtn.stroke.b);
+    strokeWeight(retryBtn.stroke.weight);
+    noFill();
     rect(retryBtn.x, retryBtn.y, retryBtn.w, retryBtn.h);
     pop();
 
     push();
     textAlign(CENTER, CENTER);
     fill(retryBtn.stroke.r, retryBtn.stroke.g, retryBtn.stroke.b, retryBtn.stroke.a);
-    stroke(retryBtn.stroke.r, retryBtn.stroke.g, retryBtn.stroke.b, retryBtn.stroke.a);
+    stroke(0, 0, 0, retryBtn.stroke.a);
     strokeWeight(retryBtn.txt.weight);
     textSize(retryBtn.txt.size);
     text("RETRY", retryBtn.x, retryBtn.y);
