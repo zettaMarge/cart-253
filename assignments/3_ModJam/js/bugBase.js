@@ -3,14 +3,25 @@
  */
 class BugBase {
     /**
+     * Object property for everything related to the wavy flight pattern
+     * If enabled, will use these to move the bug on the y axis
+     */
+    wavePattern = {
+        enabled: false,
+        angle: 0,
+        angleMod: 0.075,
+        heightMod: 5
+    };
+
+    /**
      * Constructor
-     * @param {*} x center x coordinate
-     * @param {*} y center y coordinate
-     * @param {*} size size of the bug
-     * @param {*} speed how fast the bug moves
-     * @param {*} minSpeed the minimum speed the bug can move at
-     * @param {*} maxSpeed the maximum speed the bug can move at
-     * @param {*} foodValue how nutritious the bug is
+     * @param {Number} x center x coordinate
+     * @param {Number} y center y coordinate
+     * @param {Number} size size of the bug
+     * @param {Number} speed how fast the bug moves
+     * @param {Number} minSpeed the minimum speed the bug can move at
+     * @param {Number} maxSpeed the maximum speed the bug can move at
+     * @param {Number} foodValue how nutritious the bug is
      */
     constructor(x, y, size, speed, minSpeed, maxSpeed, foodValue) {
         this.x = x;
@@ -21,17 +32,6 @@ class BugBase {
         this.maxSpeed = maxSpeed;
         this.foodValue = foodValue;
     }
-
-    /**
-     * Object property for everything related to the wavy flight pattern
-     * If enabled, will use these to move the bug on the y axis
-     */
-    wavePattern = {
-        enabled: false,
-        angle: 0,
-        angleMod: 0.075,
-        heightMod: 5
-    };
 
     /**
      * Moves the bug according to its speed
@@ -74,7 +74,7 @@ class BugBase {
             this.y = random(125, 200);
         }
         else {
-            this.y = random(10, 300);
+            this.y = random(15, 300);
         }
         
         if (this.x === width) {

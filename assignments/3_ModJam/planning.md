@@ -59,12 +59,13 @@ MVP (* => lower priority):
     - *frog tongue sfx
 
 Bonus:
-1. Modified tongue controls
+1. Evil Wasp King boss battle
+    - dis/appears on some interval at the top of the screen
+    - random x coordinate
+    - if the dart it shoots hits you, your stomach empties by some amount
+    - appears more often the more flies you eat
+2. Modified tongue controls
     - if mousePress, extend (up to canvas height)
     - if MouseRelease, retract (down to frog's y coordinate)
-2. QoL
+3. QoL
     - visually bringing the fly back to the frog’s mouth on capture
-3. Evil Frog boss battle
-    - dis/appears on some interval at the top of the screen
-    - random x coordinate based on player's current position?
-    - if its tongue hits you, your stomach empties by some amount

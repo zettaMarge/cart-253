@@ -48,49 +48,38 @@ const fly = new Fly();
 // The dreaded wasp
 const wasp = new Wasp();
 
-// The button to reinitialize the game
-// Its position is based on the canvas' size, so it can't be initialized here
-const retryBtn = {
-    x: undefined,
-    y: undefined,
-    w: 200,
-    h: 100,
-    stroke: {
-        weight: 7.5,
-        r: 77,
-        g: 130,
-        b: 47,
-        a: 255
-    },
-    fill: {
-        r: 255,
-        g: 255,
-        b: 255,
-        a: 255
-    },
-    txt: {
-        size: 40,
-        weight: 2.5
-    }
-};
+// The button to initialize the game
+let startBtn;
 
-// Various images used in the game
-// Each has a p5 Image source object, and size
-const images = {
-    stomach: {
+// The button for showing Frogfrogfrog's patch notes
+let patchNotesBtn;
+
+// The button to reinitialize the game
+let retryBtn;
+
+// The button to exit the game
+let exitBtn;
+
+// Various assets used in the game
+// Images have a p5 Image source object and size
+// Sounds are loaded by p5
+const assets = {
+    stomachImg: {
         src: undefined,
         w: 250,
         h: 250
     },
-    stomachFill: {
+    stomachFillImg: {
         src: undefined,
         w: 250,
         h: 250
     },
+    tongueSfx: undefined,
+    stunnedSfx: undefined
 }
 
 // What function to call based on the game's state
-let gameStateFunc = gameOngoing;
+let gameStateFunc = gameTitleScreen;
 
 // How many seconds the game has been running
 let gameTime = 0;
@@ -102,17 +91,22 @@ function setup() {
     createCanvas(960, 800);
     rectMode(CENTER);
     preload();
-    // Give the bugs their first random position
-    fly.resetBug();
-    wasp.resetBug();
 }
 
 /**
  * Preloads various assets
  */
 function preload() {
-    images.stomach.src = loadImage("img/stomach.png");
-    images.stomachFill.src = loadImage("img/stomach-fill.png");
+    assets.stomachImg.src = loadImage("img/stomach.png");
+    assets.stomachFillImg.src = loadImage("img/stomach-fill.png");
+
+    assets.tongueSfx = loadSound("sfx/tongue.wav");
+    assets.stunnedSfx = loadSound("sfx/stunned.wav");
+
+    startBtn = new Button(width/2, height - 150, 200, 100, 40, "START");
+    patchNotesBtn = new Button(width - 50, 50, 50, 50, 40, "ⓘ");
+    retryBtn = new Button(width/2, height - 150, 200, 100, 40, "RETRY");
+    exitBtn = new Button(width - 50, 50, 50, 50, 40, "X");
 }
 
 function draw() {
@@ -121,11 +115,22 @@ function draw() {
 }
 
 /**
+ * Game state function when the game hasn't started yet
+ * Shows the instructions and the button to start the game
+ */
+function gameTitleScreen() {
+    // TODO add logo
+    startBtn.display();
+    patchNotesBtn.display();
+}
+
+/**
  * Game state function when the game is currently ongoing
  * The frog and fly can move, and the stomach's contents vary
  */
 function gameOngoing() {
     frog.head.y = 520;
+    exitBtn.display();
 
     advanceGameTime();
     fly.moveBug();
@@ -156,14 +161,15 @@ function gameOver() {
 
     drawGameOverTxt();
     drawFrog();
-    drawRetryBtn();
+    retryBtn.display();
+    exitBtn.display();
 }
 
 /**
  * Moves the frog to the mouse position on x
  */
 function moveFrog() {
-    frog.head.x = mouseX;
+    frog.head.x = constrain(mouseX, 120, width - 120);
 }
 
 /**
@@ -430,19 +436,42 @@ function drawLilypad() {
 }
 
 /**
- * Event when a bouse button is pressed
+ * Callback event when a bouse button is pressed
+ * @param {MouseEvent} evt 
  */
-function mousePressed() {
-    if (gameStateFunc === gameOngoing) {
-        // Launch the tongue on click (if it's not launched yet and idle)
-        if (frog.tongue.state === FrogStates.IDLE) {
-            frog.tongue.state = FrogStates.OUTBOUND;
+function mousePressed(evt) {
+    // Left click
+    if (evt.button == 0) {
+        if (gameStateFunc === gameOngoing) {
+            if (isRectPointOverlap(exitBtn.x, exitBtn.y, exitBtn.w, exitBtn.h, mouseX, mouseY)) {
+                // Return to the title screen
+                gameStateFunc = gameTitleScreen;
+            }
+            else if (frog.tongue.state === FrogStates.IDLE) {
+                // Launch the tongue on click (if it's not launched yet and idle)
+                frog.tongue.state = FrogStates.OUTBOUND;
+                assets.tongueSfx.play();
+            }
         }
-    }
-    else if (gameStateFunc === gameOver) {
-        // Reset the game if clicking the RETRY button
-        if (isRectPointOverlap(retryBtn.x, retryBtn.y, mouseX, mouseY, retryBtn.w, retryBtn.h)) {
-            resetGame();
+        else if (gameStateFunc === gameTitleScreen) {
+            if (isRectPointOverlap(startBtn.x, startBtn.y, startBtn.w, startBtn.h, mouseX, mouseY)) {
+                // Start the game if clicking the menu button
+                resetGame();
+            }
+            else if (isRectPointOverlap(patchNotesBtn.x, patchNotesBtn.y, patchNotesBtn.w, patchNotesBtn.h, mouseX, mouseY)) {
+                // Open the patch notes in another window
+                window.open("./patchNotes.md");
+            }
+        }
+        else if (gameStateFunc === gameOver) {
+            if (isRectPointOverlap(retryBtn.x, retryBtn.y, retryBtn.w, retryBtn.h, mouseX, mouseY)) {
+                // Reset the game if clicking the menu button
+                resetGame();
+            }
+            else if (isRectPointOverlap(exitBtn.x, exitBtn.y, exitBtn.w, exitBtn.h, mouseX, mouseY)) {
+                // Return to the title screen
+                gameStateFunc = gameTitleScreen;
+            }
         }
     }
 }
@@ -483,7 +512,7 @@ function drawStomach() {
     pop();
 
     // Filled insides png
-    image(images.stomachFill.src, width - 260, height - 273, images.stomachFill.w, images.stomachFill.h);
+    image(assets.stomachFillImg.src, width - 260, height - 273, assets.stomachFillImg.w, assets.stomachFillImg.h);
 
     // Black rectangle for emptying stomach
     // It's easier to manage its height and position when using the CORNER mode
@@ -497,7 +526,7 @@ function drawStomach() {
     rectMode(CENTER);
 
     // Stomach with transparent hole png
-    image(images.stomach.src, width - 260, height - 273, images.stomach.w, images.stomach.h);
+    image(assets.stomachImg.src, width - 260, height - 273, assets.stomachImg.w, assets.stomachImg.h);
 }
 
 /**
@@ -522,17 +551,19 @@ function advanceGameTime() {
  * Returns if a point overlaps a rectangle
  * @param {Number} xR x coordinate of the rectangle
  * @param {Number} yR y coordinate of the rectangle
+ * @param {Number} wR width of the rectangle
+ * @param {Number} hR height of the rectangle
  * @param {Number} xP x coordinate of the point
  * @param {Number} yP y coordinate of the point
  * @returns 
  */
-function isRectPointOverlap(xR, yR, xP, yP, w, h) {
+function isRectPointOverlap(xR, yR, wR, hR, xP, yP) {
     // Assuming rectMode is set to CENTER, these give us the bounds of the rectangle's width and height
     // Could be refactored to account for the other modes, but not necessary for this project
-    let xMin = xR - w/2;
-    let xMax = xR + w/2;
-    let yMin = yR - h/2;
-    let yMax = yR + h/2;
+    let xMin = xR - wR/2;
+    let xMax = xR + wR/2;
+    let yMin = yR - hR/2;
+    let yMax = yR + hR/2;
 
     // Is the point's x coordinate within the bounds of the rectangle's width
     // and is the y coordinate within the bounds of the rectangle's height?
@@ -586,48 +617,6 @@ function drawGameOverTxt() {
     strokeWeight(2.5);
     textSize(36);
     text(`You've managed to eat ${fliesEatenStr}\nand live a long life of ${gameTime} seconds\nbefore croaking it.`, width/2, 165);
-    pop();
-}
-
-/**
- * Draws the retry button
- */
-function drawRetryBtn() {
-    retryBtn.x = width/2;
-    retryBtn.y = height - 150;
-    
-    let isHover = isRectPointOverlap(retryBtn.x, retryBtn.y, mouseX, mouseY, retryBtn.w, retryBtn.h);
-    // Change button opacity to indicate whether the mouse is currently hovering it or not
-    if (isHover) {
-        retryBtn.stroke.a = 255;
-        retryBtn.fill.a = 255;
-    }
-    else {
-        retryBtn.stroke.a = 175;
-        retryBtn.fill.a = 175;
-    }
-
-    push();
-    stroke(0, 0, 0, retryBtn.fill.a);
-    strokeWeight(retryBtn.stroke.weight);
-    fill(retryBtn.fill.r, retryBtn.fill.g, retryBtn.fill.b, retryBtn.fill.a);
-    rect(retryBtn.x, retryBtn.y, retryBtn.w + 7.5, retryBtn.h + 7.5);
-    pop();
-
-    push();
-    stroke(retryBtn.stroke.r, retryBtn.stroke.g, retryBtn.stroke.b);
-    strokeWeight(retryBtn.stroke.weight);
-    noFill();
-    rect(retryBtn.x, retryBtn.y, retryBtn.w, retryBtn.h);
-    pop();
-
-    push();
-    textAlign(CENTER, CENTER);
-    fill(retryBtn.stroke.r, retryBtn.stroke.g, retryBtn.stroke.b, retryBtn.stroke.a);
-    stroke(0, 0, 0, retryBtn.stroke.a);
-    strokeWeight(retryBtn.txt.weight);
-    textSize(retryBtn.txt.size);
-    text("RETRY", retryBtn.x, retryBtn.y);
     pop();
 }
 

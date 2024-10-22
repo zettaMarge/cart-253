@@ -12,4 +12,4 @@ This project uses:
 - Pippin's [Frogfrogfrog](https://pippinbarr.github.io/cart253-examples/topics/making/frogfrogfrog/index.html) as a base
 
 ### Attribution
-x
+- Sound effects generated with [Jsfxr](https://sfxr.me/)
