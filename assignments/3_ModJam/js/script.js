@@ -28,17 +28,38 @@ const frog = {
         size: 20,
         speed: 20,
         // Determines how the tongue moves each frame
-        state: FrogStates.IDLE,
+        state: CharacterStates.IDLE,
         stunTimer: 3,
         initTimer: 3
     },
     // The frog's stomach; how empty it is and can get, how fast it empties, and how much the frog has eaten
     stomach: {
-        emptySize: 50,
-        initSize: 50,
+        emptySize: 35,
+        initSize: 35,
         maxSize: 110,
         emptyRate: 0.05,
         fliesEatenCount: 0
+    }
+};
+
+const waspKing = {
+    isSummoned: false,
+    x: undefined,
+    y: 0,
+    size: 75,
+    speed: 5,
+    state: CharacterStates.IDLE,
+    stinger: {
+        isShot: false,
+        x: undefined,
+        y: undefined,
+        size: 15,
+        speed: 3
+    },
+    interval: {
+        currentTimer: 5, // in seconds
+        minTimer: 1,
+        initTimer: 5,
     }
 };
 
@@ -131,18 +152,48 @@ function gameTitleScreen() {
 function gameOngoing() {
     frog.head.y = 520;
     exitBtn.display();
-
     advanceGameTime();
+
+    // The Wasp King's timer
+    if (!waspKing.isSummoned && !waspKing.stinger.isShot) {
+        if (frameCount % 60 == 0 && waspKing.interval.currentTimer > 0) {
+            --waspKing.interval.currentTimer;
+        }
+    
+        if (waspKing.interval.currentTimer === 0) {
+            summonWaspKing();
+        }
+    }
+
+    // The bugs
     fly.moveBug();
     fly.drawBug();
     wasp.moveBug();
     wasp.drawBug();
+
+    // The frog
     moveFrog();
     moveTongue();
     drawLilypad();
     drawFrog();
+
+    // The Wasp King and its stinger
+    if (waspKing.stinger.isShot) {
+        moveStinger();
+        drawStinger();
+    }
+
+    if (waspKing.isSummoned) {
+        moveWaspKing();
+        drawWaspKing();
+    }
+
+    // Check overlaps
     fly.checkTongueOverlap();
     wasp.checkTongueOverlap();
+    checkStingerOverlap();
+
+    // The Stomach
     changeStomachSize(frog.stomach.emptyRate);
     drawStomach();
     checkStomachEmpty();
@@ -179,34 +230,34 @@ function moveTongue() {
     // Tongue matches the frog's x
     frog.tongue.x = frog.head.x;
     // **EDIT If the tongue is idle, it stays aligned with the frog's y coordinate
-    if (frog.tongue.state === FrogStates.IDLE) {
+    if (frog.tongue.state === CharacterStates.IDLE) {
         frog.tongue.y = frog.head.y;
     }
     // If the tongue is outbound, it moves up
-    else if (frog.tongue.state === FrogStates.OUTBOUND) {
+    else if (frog.tongue.state === CharacterStates.OUTBOUND) {
         frog.tongue.y += -frog.tongue.speed;
         // The tongue bounces back if it hits the top
         if (frog.tongue.y <= 0) {
-            frog.tongue.state = FrogStates.INBOUND;
+            frog.tongue.state = CharacterStates.INBOUND;
         }
     }
     // If the tongue is inbound, it moves down
-    else if (frog.tongue.state === FrogStates.INBOUND) {
+    else if (frog.tongue.state === CharacterStates.INBOUND) {
         frog.tongue.y += frog.tongue.speed;
         // **EDIT The tongue stops once it gets back to the frog
         if (frog.tongue.y >= frog.head.y) {
-            frog.tongue.state = FrogStates.IDLE;
+            frog.tongue.state = CharacterStates.IDLE;
         }
     }
     // If the frog is stunned, there's a timer before it returns to idle
-    else if (frog.tongue.state === FrogStates.STUNNED) {
+    else if (frog.tongue.state === CharacterStates.STUNNED) {
         if (frameCount % 60 == 0 && frog.tongue.stunTimer > 0) {
             --frog.tongue.stunTimer;
         }
 
         if (frog.tongue.stunTimer == 0) {
             frog.tongue.stunTimer = frog.tongue.initTimer;
-            frog.tongue.state = FrogStates.IDLE;
+            frog.tongue.state = CharacterStates.IDLE;
         }
 
         // Return the tongue to the frog, but slightly slower
@@ -250,17 +301,14 @@ function drawFrogBody() {
     ellipse(frog.head.x - 80, frog.head.y, 15);
     ellipse(frog.head.x - 97.5, frog.head.y, 15);
     ellipse(frog.head.x - 107.5, frog.head.y + 12.5, 15);
-
     // Back left leg
     ellipse(frog.head.x - 97.5, frog.head.y + 85, 15);
     ellipse(frog.head.x - 92.5, frog.head.y + 99, 15);
     ellipse(frog.head.x - 80, frog.head.y + 107.5, 15);
-
     // Front right leg
     ellipse(frog.head.x + 80, frog.head.y, 15);
     ellipse(frog.head.x + 97.5, frog.head.y, 15);
     ellipse(frog.head.x + 107.5, frog.head.y + 12.5, 15);
-
     // Back right leg
     ellipse(frog.head.x + 97.5, frog.head.y + 85, 15);
     ellipse(frog.head.x + 92.5, frog.head.y + 99, 15);
@@ -274,7 +322,6 @@ function drawFrogBody() {
     // The left legs
     arc(frog.head.x - 85, frog.head.y + 25, 50, 50, HALF_PI + PI/9, 0);
     arc(frog.head.x - 75, frog.head.y + 85, 45, 45, HALF_PI - PI/9, PI + QUARTER_PI);
-
     // The right legs
     arc(frog.head.x + 85, frog.head.y + 25, 50, 50, PI + QUARTER_PI, HALF_PI - PI/9);
     arc(frog.head.x + 75, frog.head.y + 85, 45, 45, 0 - QUARTER_PI, HALF_PI + PI/9);
@@ -367,7 +414,7 @@ function drawFrogEyes() {
 
     // The pupils
     push();
-    if (frog.tongue.state === FrogStates.STUNNED && frog.stomach.emptySize < frog.stomach.maxSize) {
+    if (frog.tongue.state === CharacterStates.STUNNED && frog.stomach.emptySize < frog.stomach.maxSize) {
         // The frog is dizzy
         fill(255);
         stroke(0);
@@ -447,9 +494,9 @@ function mousePressed(evt) {
                 // Return to the title screen
                 gameStateFunc = gameTitleScreen;
             }
-            else if (frog.tongue.state === FrogStates.IDLE) {
+            else if (frog.tongue.state === CharacterStates.IDLE) {
                 // Launch the tongue on click (if it's not launched yet and idle)
-                frog.tongue.state = FrogStates.OUTBOUND;
+                frog.tongue.state = CharacterStates.OUTBOUND;
                 assets.tongueSfx.play();
             }
         }
@@ -630,12 +677,149 @@ function resetGame() {
     // Reset the frog
     frog.stomach.emptySize = frog.stomach.initSize;
     frog.stomach.fliesEatenCount = 0;
-    frog.tongue.state = FrogStates.IDLE
+    frog.tongue.state = CharacterStates.IDLE
 
     // Reset the bugs
     fly.resetBug();
     wasp.resetBug();
+    waspKing.interval.currentTimer = waspKing.interval.initTimer;
 
     // Restart the game
     gameStateFunc = gameOngoing;
+}
+
+/**
+ * Randomly sets the Wasp King's x coordinate and initializes its movement sequence
+ */
+function summonWaspKing() {
+    waspKing.x = random(50, width - 50);
+    waspKing.y = 0;
+    waspKing.state = CharacterStates.INBOUND;
+    waspKing.isSummoned = true;
+}
+
+/**
+ * Moves the Wasp King up or down
+ */
+function moveWaspKing() {
+    if (waspKing.state === CharacterStates.INBOUND) {
+        // Move the Wasp King in the canvas
+        waspKing.y += waspKing.speed;
+
+        if (waspKing.y >= waspKing.size + 30) {
+            // Let the Wasp King stay idle a bit while it shoots its stinger
+            waspKing.state = CharacterStates.IDLE;
+            
+            // Sets the stinger's position
+            waspKing.stinger.x = waspKing.x;
+            waspKing.stinger.y = waspKing.y - waspKing.size/2;
+            waspKing.stinger.isShot = true;
+        }
+    }
+    else if (waspKing.state === CharacterStates.OUTBOUND) {
+        // Move the Wasp King out of the canvas
+        waspKing.y += -waspKing.speed;
+
+        if (waspKing.y <= 0) {
+            // The Wasp King is offscreen
+            waspKing.state = CharacterStates.IDLE;
+            waspKing.isSummoned = false;
+        }
+    }
+}
+
+/**
+ * Draws the Wasp King
+ */
+function drawWaspKing() {
+    let x1 = waspKing.x;
+    let y1 = waspKing.y;
+    let x2 = waspKing.x - waspKing.size/2;
+    let y2 = waspKing.y - waspKing.size;
+    let x3 = waspKing.x + waspKing.size/2;
+    let y3 = waspKing.y - waspKing.size;
+
+    // The body
+    push();
+    noStroke();
+    fill("#ffd563");
+    triangle(
+        x1, y1,
+        x2, y2,
+        x3, y3
+    );
+    pop();
+
+    // The eyes
+    push();
+    stroke(0);
+    fill("#ff0000");
+    arc(x1 - 15, y2 + 10, 25, 25, QUARTER_PI, PI + QUARTER_PI, CHORD);
+    arc(x1 + 15, y2 + 10, 25, 25, 0 - QUARTER_PI, PI - QUARTER_PI, CHORD);
+    pop();
+}
+
+/**
+ * Moves the stinger down
+ */
+function moveStinger() {
+    waspKing.stinger.y += waspKing.stinger.speed;
+    const waspDist = dist(waspKing.stinger.x, waspKing.stinger.y, waspKing.x, waspKing.y);
+
+    if (waspDist > 80) {
+        // Start moving the Wasp King out
+        waspKing.state = CharacterStates.OUTBOUND
+    }
+
+    if (waspKing.stinger.y - waspKing.stinger.size >= height) {
+        // The stinger is offscreen
+        waspKing.interval.currentTimer = waspKing.interval.initTimer;
+        waspKing.stinger.isShot = false;
+    }
+}
+
+/**
+ * Draws the stinger
+ */
+function drawStinger() {
+    let x1 = waspKing.stinger.x;
+    let y1 = waspKing.stinger.y;
+    let x2 = waspKing.stinger.x - waspKing.stinger.size/2;
+    let y2 = waspKing.stinger.y - waspKing.stinger.size;
+    let x3 = waspKing.stinger.x + waspKing.stinger.size/2;
+    let y3 = waspKing.stinger.y - waspKing.stinger.size;
+
+    push();
+    noStroke();
+    fill(0);
+    triangle(
+        x1, y1,
+        x2, y2,
+        x3, y3
+    );
+    pop();
+}
+
+/**
+ * Handles the stinger overlapping the frog
+ */
+function checkStingerOverlap() {
+    const headDist = dist(waspKing.stinger.x, waspKing.stinger.y, frog.head.x, frog.head.y);
+    const bodyDist = dist(waspKing.stinger.x, waspKing.stinger.y, frog.head.x, frog.head.y + frog.head.size/3);
+    // Check if there's an overlap with either the head or the body
+    const stung = ((headDist < frog.head.size/2) || (bodyDist < frog.head.size * 1.2/2));
+
+    if (stung) {
+        // Stun the frog
+        frog.tongue.state = CharacterStates.STUNNED;
+        assets.stunnedSfx.play();
+
+        // Make the frog hungrier
+        changeStomachSize(10);
+
+        // Remove the stinger
+        waspKing.stinger.y = height + waspKing.stinger.size;
+        waspKing.interval.currentTimer = waspKing.interval.initTimer;
+        waspKing.stinger.isShot = false;
+    }
 }

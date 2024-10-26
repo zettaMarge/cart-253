@@ -80,7 +80,7 @@ class Wasp extends BugBase {
             // Reset the wasp
             wasp.resetBug();
             // Stun the frog
-            frog.tongue.state = FrogStates.STUNNED;
+            frog.tongue.state = CharacterStates.STUNNED;
             assets.stunnedSfx.play();
         }
     }

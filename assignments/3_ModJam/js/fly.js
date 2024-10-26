@@ -15,18 +15,22 @@ class Fly extends BugBase {
      * Handles the tongue overlapping the fly
      */
     checkTongueOverlap() {
-        // Get distance from tongue to fly
-        const d = dist(frog.tongue.x, frog.tongue.y, fly.x, fly.y);
-        // Check if it's an overlap
-        const eaten = (d < frog.tongue.size/2 + fly.size/2);
-        if (eaten) {
-            // Reset the fly
-            fly.resetBug();
-            // Bring back the tongue
-            frog.tongue.state = FrogStates.INBOUND;
-            // Fill up the stomach a bit & add a fly to the counter
-            changeStomachSize(-fly.foodValue)
-            ++frog.stomach.fliesEatenCount
+        if (frog.tongue.state != CharacterStates.STUNNED) {
+            // Get distance from tongue to fly
+            const d = dist(frog.tongue.x, frog.tongue.y, fly.x, fly.y);
+            // Check if it's an overlap
+            const eaten = (d < frog.tongue.size/2 + fly.size/2);
+            if (eaten) {
+                // Reset the fly
+                fly.resetBug();
+                // Bring back the tongue
+                frog.tongue.state = CharacterStates.INBOUND;
+                // Fill up the stomach a bit & add a fly to the counter
+                changeStomachSize(-fly.foodValue)
+                ++frog.stomach.fliesEatenCount
+                // Make the Wasp King appear more often
+                waspKing.interval.currentTimer = constrain(waspKing.interval.currentTimer -= 0.5, waspKing.interval.minTimer, waspKing.interval.initTimer);
+            }
         }
     }
 

@@ -10,6 +10,12 @@
 - Gave non-lethal wasp allergy to Frog;
 - Frog cannot eat flies while dealing with an allergic reaction;
 
+## New Event
+- Introducing a new event: the Wasp King's reign;
+- The Wasp King will appear every few seconds to try and sting Frog;
+- The sting induces a strong allergic reation that leaves Frog much hungrier;
+- The more Frog eats flies, the angrier the Wasp King gets;
+
 ## Bug Improvements
 - Added new possible flight pattern to bug A.I.;
 - Randomized bugs' speed value;
