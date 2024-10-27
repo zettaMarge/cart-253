@@ -8,7 +8,7 @@ class Fly extends BugBase {
      */
     constructor() {
         // Calls the base class constructor
-        super(0, 200, 10, 3, 3, 5, 5)
+        super(0, 200, 10, 3, 3, 5, 5);
     }
 
     /**
@@ -26,8 +26,8 @@ class Fly extends BugBase {
                 // Bring back the tongue
                 frog.tongue.state = CharacterStates.INBOUND;
                 // Fill up the stomach a bit & add a fly to the counter
-                changeStomachSize(-fly.foodValue)
-                ++frog.stomach.fliesEatenCount
+                changeStomachSize(-fly.foodValue);
+                ++frog.stomach.fliesEatenCount;
                 // Make the Wasp King appear more often
                 waspKing.interval.currentTimer = constrain(waspKing.interval.currentTimer -= 0.5, waspKing.interval.minTimer, waspKing.interval.initTimer);
             }

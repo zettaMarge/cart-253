@@ -42,6 +42,7 @@ const frog = {
     }
 };
 
+// The Wasp King
 const waspKing = {
     isSummoned: false,
     x: undefined,
@@ -85,6 +86,11 @@ let exitBtn;
 // Images have a p5 Image source object and size
 // Sounds are loaded by p5
 const assets = {
+    logo: {
+        src: undefined,
+        w: 856,
+        h: 606
+    },
     stomachImg: {
         src: undefined,
         w: 250,
@@ -97,7 +103,7 @@ const assets = {
     },
     tongueSfx: undefined,
     stunnedSfx: undefined
-}
+};
 
 // What function to call based on the game's state
 let gameStateFunc = gameTitleScreen;
@@ -118,6 +124,7 @@ function setup() {
  * Preloads various assets
  */
 function preload() {
+    assets.logo.src = loadImage("img/logo.png");
     assets.stomachImg.src = loadImage("img/stomach.png");
     assets.stomachFillImg.src = loadImage("img/stomach-fill.png");
 
@@ -140,7 +147,7 @@ function draw() {
  * Shows the instructions and the button to start the game
  */
 function gameTitleScreen() {
-    // TODO add logo
+    image(assets.logo.src, width/2 - assets.logo.w/2, 0, assets.logo.w, assets.logo.h);
     startBtn.display();
     patchNotesBtn.display();
 }
@@ -553,8 +560,8 @@ function drawStomach() {
     // Circle icon background
     push();
     strokeWeight(4);
-    stroke(240)
-    fill("#7ba6b8")
+    stroke(240);
+    fill("#7ba6b8");
     ellipse(width - 152.5, height - 140, 298, 273);
     pop();
 
@@ -677,7 +684,7 @@ function resetGame() {
     // Reset the frog
     frog.stomach.emptySize = frog.stomach.initSize;
     frog.stomach.fliesEatenCount = 0;
-    frog.tongue.state = CharacterStates.IDLE
+    frog.tongue.state = CharacterStates.IDLE;
 
     // Reset the bugs
     fly.resetBug();
@@ -768,7 +775,7 @@ function moveStinger() {
 
     if (waspDist > 80) {
         // Start moving the Wasp King out
-        waspKing.state = CharacterStates.OUTBOUND
+        waspKing.state = CharacterStates.OUTBOUND;
     }
 
     if (waspKing.stinger.y - waspKing.stinger.size >= height) {

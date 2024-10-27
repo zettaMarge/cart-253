@@ -8,7 +8,7 @@ class Wasp extends BugBase {
      */
     constructor() {
         // Calls the base class constructor
-        super(0, 200, 15, 1.5, 1.5, 3, 0)
+        super(0, 200, 15, 1.5, 1.5, 3, 0);
     }
 
     /**

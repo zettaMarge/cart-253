@@ -43,7 +43,7 @@ class BugBase {
 
         // Move the bug vertically
         if (this.wavePattern.enabled) { 
-            this.y += cos(this.wavePattern.angle) * this.wavePattern.heightMod
+            this.y += cos(this.wavePattern.angle) * this.wavePattern.heightMod;
             this.wavePattern.angle -= this.wavePattern.angleMod;
         }
 
