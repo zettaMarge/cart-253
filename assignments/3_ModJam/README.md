@@ -2,9 +2,10 @@
 ## Frog^3 Deluxe DLC
 
 ### Description
-A game about catching flies.
+A game about catching flies, now with new features.
 
 - [Planning](./planning.md)
+- [Implemented features](./patchNotes.md)
 
 ### Credits
 This project uses:
