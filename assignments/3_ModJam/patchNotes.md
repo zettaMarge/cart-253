@@ -1,4 +1,4 @@
-# Frog^3 Deluxe DLC Patch Notes (2024-10-XX)
+# Frog^3 Deluxe DLC Patch Notes (2024-10-27)
 
 ## Frog Lifespan
 - Gave Frog an insatiable appetite;
