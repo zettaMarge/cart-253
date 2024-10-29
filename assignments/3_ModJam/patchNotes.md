@@ -1,4 +1,4 @@
-# Frog^3 Deluxe DLC Patch Notes (2024-10-27)
+# Frog^3 Deluxe DLC Patch Notes (2024-10-29)
 
 ## Frog Lifespan
 - Gave Frog an insatiable appetite;
@@ -20,6 +20,7 @@
 - Added new possible flight pattern to bug A.I.;
 - Randomized bugs' speed value;
 - Bugs are no longer limited to traversing the river in only one direction;
+- The game starts with a swarm of flies that disperses after some time, sensing the danger;
 
 ## Visual Improvements
 - Frog now looks vaguely more frog-like;

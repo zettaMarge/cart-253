@@ -34,8 +34,8 @@ const frog = {
     },
     // The frog's stomach; how empty it is and can get, how fast it empties, and how much the frog has eaten
     stomach: {
-        emptySize: 35,
-        initSize: 35,
+        emptySize: 60,
+        initSize: 60,
         maxSize: 110,
         emptyRate: 0.05,
         fliesEatenCount: 0
@@ -59,13 +59,19 @@ const waspKing = {
     },
     interval: {
         currentTimer: 5, // in seconds
+        currentMaxTimer: 5,
         minTimer: 1,
         initTimer: 5,
     }
 };
 
-// Our fly
-const fly = new Fly();
+// Manages everything about the flies
+const flyManager = {
+    flies: [],
+    initTimer: 10,
+    currentTimer: 10,
+    initFliesCount: 10
+};
 
 // The dreaded wasp
 const wasp = new Wasp();
@@ -112,7 +118,7 @@ let gameStateFunc = gameTitleScreen;
 let gameTime = 0;
 
 /**
- * Creates the canvas and initializes the fly
+ * Creates the canvas and initializes some assets
  */
 function setup() {
     createCanvas(960, 800);
@@ -154,7 +160,7 @@ function gameTitleScreen() {
 
 /**
  * Game state function when the game is currently ongoing
- * The frog and fly can move, and the stomach's contents vary
+ * The frog, flies, and wasps can move, and the stomach's contents vary
  */
 function gameOngoing() {
     frog.head.y = 520;
@@ -163,18 +169,33 @@ function gameOngoing() {
 
     // The Wasp King's timer
     if (!waspKing.isSummoned && !waspKing.stinger.isShot) {
-        if (frameCount % 60 == 0 && waspKing.interval.currentTimer > 0) {
-            --waspKing.interval.currentTimer;
+        if (frameCount % 30 == 0 && waspKing.interval.currentTimer > 0) {
+            waspKing.interval.currentTimer -= 0.5;
         }
     
-        if (waspKing.interval.currentTimer === 0) {
+        if (waspKing.interval.currentTimer <= 0) {
             summonWaspKing();
         }
     }
 
+    // The swarm of flies disperses over time until a single fly remains
+    if (flyManager.flies.length > 1) {
+        if (frameCount % 60 == 0 && flyManager.currentTimer > 0) {
+            --flyManager.currentTimer;
+        }
+    
+        if (flyManager.currentTimer === 0) {
+            flyManager.flies.splice(0, 1);
+            flyManager.currentTimer = flyManager.initTimer;
+        }
+    }
+
     // The bugs
-    fly.moveBug();
-    fly.drawBug();
+    for (let fly of flyManager.flies) {
+        fly.moveBug();
+        fly.drawBug();
+    }
+
     wasp.moveBug();
     wasp.drawBug();
 
@@ -196,7 +217,10 @@ function gameOngoing() {
     }
 
     // Check overlaps
-    fly.checkTongueOverlap();
+    for (let fly of flyManager.flies) {
+        fly.checkTongueOverlap();
+    }
+    
     wasp.checkTongueOverlap();
     checkStingerOverlap();
 
@@ -687,12 +711,23 @@ function resetGame() {
     frog.tongue.state = CharacterStates.IDLE;
 
     // Reset the bugs
-    fly.resetBug();
+    initFlies();
     wasp.resetBug();
-    waspKing.interval.currentTimer = waspKing.interval.initTimer;
+    resetWaspKing()
 
     // Restart the game
     gameStateFunc = gameOngoing;
+}
+
+/**
+ * Initializes the list of flies to contain a certain number of new flies
+ */
+function initFlies() {
+    flyManager.flies = [];
+
+    for(let i = 0; i < flyManager.initFliesCount; ++i) {
+        flyManager.flies.push(new Fly());
+    }
 }
 
 /**
@@ -703,6 +738,19 @@ function summonWaspKing() {
     waspKing.y = 0;
     waspKing.state = CharacterStates.INBOUND;
     waspKing.isSummoned = true;
+}
+
+/**
+ * Resets the Wasp King and its stinger to their initial states
+ */
+function resetWaspKing() {
+    waspKing.isSummoned = false;
+    waspKing.y = 0;
+    waspKing.interval.currentTimer = waspKing.interval.initTimer;
+    waspKing.interval.currentMaxTimer = waspKing.interval.initTimer;
+    waspKing.state = CharacterStates.IDLE;
+    waspKing.stinger.isShot = false;
+    waspKing.stinger.y = 0;
 }
 
 /**
@@ -780,7 +828,7 @@ function moveStinger() {
 
     if (waspKing.stinger.y - waspKing.stinger.size >= height) {
         // The stinger is offscreen
-        waspKing.interval.currentTimer = waspKing.interval.initTimer;
+        waspKing.interval.currentTimer = waspKing.interval.currentMaxTimer;
         waspKing.stinger.isShot = false;
     }
 }
@@ -826,7 +874,7 @@ function checkStingerOverlap() {
 
         // Remove the stinger
         waspKing.stinger.y = height + waspKing.stinger.size;
-        waspKing.interval.currentTimer = waspKing.interval.initTimer;
+        waspKing.interval.currentTimer = waspKing.interval.currentMaxTimer;
         waspKing.stinger.isShot = false;
     }
 }
