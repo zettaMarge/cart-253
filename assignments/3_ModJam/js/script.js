@@ -82,6 +82,9 @@ let startBtn;
 // The button for showing Frogfrogfrog's patch notes
 let patchNotesBtn;
 
+// The button to redirect to the legacy version of Frogfrogfrog
+let legacyBtn;
+
 // The button to reinitialize the game
 let retryBtn;
 
@@ -94,8 +97,8 @@ let exitBtn;
 const assets = {
     logo: {
         src: undefined,
-        w: 856,
-        h: 606
+        w: 800,
+        h: 550
     },
     stomachImg: {
         src: undefined,
@@ -137,8 +140,9 @@ function preload() {
     assets.tongueSfx = loadSound("sfx/tongue.wav");
     assets.stunnedSfx = loadSound("sfx/stunned.wav");
 
-    startBtn = new Button(width/2, height - 150, 200, 100, 40, "START");
+    startBtn = new Button(width/2, height - 225, 200, 100, 40, "START");
     patchNotesBtn = new Button(width - 50, 50, 50, 50, 40, "ⓘ");
+    legacyBtn = new Button(width/2, height - 85, 200, 100, 40, "LEGACY");
     retryBtn = new Button(width/2, height - 150, 200, 100, 40, "RETRY");
     exitBtn = new Button(width - 50, 50, 50, 50, 40, "X");
 }
@@ -156,6 +160,7 @@ function gameTitleScreen() {
     image(assets.logo.src, width/2 - assets.logo.w/2, 0, assets.logo.w, assets.logo.h);
     startBtn.display();
     patchNotesBtn.display();
+    legacyBtn.display();
 }
 
 /**
@@ -539,6 +544,10 @@ function mousePressed(evt) {
             else if (isRectPointOverlap(patchNotesBtn.x, patchNotesBtn.y, patchNotesBtn.w, patchNotesBtn.h, mouseX, mouseY)) {
                 // Open the patch notes in another window
                 window.open("./patchNotes.md");
+            }
+            else if (isRectPointOverlap(legacyBtn.x, legacyBtn.y, legacyBtn.w, legacyBtn.h, mouseX, mouseY)) {
+                // Open Pippin's base Frogfrogfrog project in another window
+                window.open("https://pippinbarr.com/cart253-examples/topics/making/frogfrogfrog/");
             }
         }
         else if (gameStateFunc === gameOver) {

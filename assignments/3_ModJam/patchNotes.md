@@ -32,3 +32,4 @@
 - Added endgame screen with player score;
 - Added sound effects;
 - Frog will now stay within the confines of the river;
+- Added legacy button for the nostalgics;
