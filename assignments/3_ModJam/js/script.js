@@ -147,6 +147,9 @@ function preload() {
     exitBtn = new Button(width - 50, 50, 50, 50, 40, "X");
 }
 
+/**
+ * Draws whichever scene corresponds to the current game state
+ */
 function draw() {
     background("#87ceeb");
     gameStateFunc();
