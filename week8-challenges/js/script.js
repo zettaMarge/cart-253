@@ -1,67 +1,76 @@
 /**
  * Lines
  * Pippin Barr
+ * edit by Marjorie Dudemaine
  * 
  * A series of lines across the canvas
  */
 
 "use strict";
 
+const colourIncr = 25;
+const distIncr = 50;
+const canvasSize = 500;
+
 /**
  * Creates the canvas
  */
 function setup() {
-    createCanvas(500, 500);
+    createCanvas(canvasSize, canvasSize);
 }
 
 /**
  * Draws lines across the canvas with increasing thickness and
- * gradually lightening colour
+ * gradually lightening colour, over a rainbow gradient background
  */
 function draw() {
-    background("pink");
-    
-    stroke(0);
-    strokeWeight(1);
-    line(0, 0, 0, height);
-    
-    stroke(25);
-    strokeWeight(2);
-    line(50, 0, 50, height);
-    
-    stroke(50);
-    strokeWeight(3);
-    line(100, 0, 100, height);
-    
-    stroke(75);
-    strokeWeight(4);
-    line(150, 0, 150, height);
-    
-    stroke(100);
-    strokeWeight(5);
-    line(200, 0, 200, height);
-    
-    stroke(125);
-    strokeWeight(6);
-    line(250, 0, 250, height);
-    
-    stroke(150);
-    strokeWeight(7);
-    line(300, 0, 300, height);
-    
-    stroke(175);
-    strokeWeight(8);
-    line(350, 0, 350, height);
-    
-    stroke(200);
-    strokeWeight(9);
-    line(400, 0, 400, height);
-    
-    stroke(225);
-    strokeWeight(10);
-    line(450, 0, 450, height);
-    
-    stroke(250);
-    strokeWeight(11);
-    line(500, 0, 500, height);
+    drawGradientBg();
+    drawLines();
+}
+
+/**
+ * Challenge 3: Bg For-Loop
+ */
+function drawGradientBg() {
+    push();
+    colorMode(HSB, canvasSize);
+
+    for (let i = 0; i <= canvasSize; ++i) {
+        stroke(i, canvasSize, canvasSize);
+        strokeWeight(1);
+        line(0, i, i, 0);
+        line(width, i, i, height);
+    }
+
+    pop();
+}
+
+/**
+ * Challenge 1 & 2: Horizontal/Vertical Lines While-Loop
+ */
+function drawLines() {
+    let lineColour = 0;
+    let lineWeight = 1;
+    let coord = 0;
+
+    while (coord <= canvasSize) {
+        push();
+        stroke(lineColour);
+        strokeWeight(lineWeight);
+
+        if (lineWeight % 2 === 0) {
+            line(coord, 0, coord, height);
+            line(0, coord, width, coord);
+        }
+        else {
+            line(0, coord, width, coord);
+            line(coord, 0, coord, height);
+        }
+        
+        pop();
+
+        lineColour += colourIncr;
+        ++lineWeight;
+        coord += distIncr;
+    }
 }
