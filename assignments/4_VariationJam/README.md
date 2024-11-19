@@ -1,8 +1,11 @@
 # Assignment 4: Variation Jam
-## TITLE
+## Minot-art Attack
 
 ### Description
-TODO desc
+A basic maze game in which the player and CPU's movements change the colors of the tiles.
+
+#### Fill Variation
+The tile's color gets completely replaced when an entity moves on it.
 
 ### Credits
 This project uses:
