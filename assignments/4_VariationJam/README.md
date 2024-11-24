@@ -1,8 +1,9 @@
 # Assignment 4: Variation Jam
-## Minot-art Attack
+## Minot-Art Attack
 
 ### Description
-A basic maze game in which the player and CPU's movements change the colors of the tiles.
+A basic maze game in which the players' movements change the colors of the tiles.
+Can be played with 2 players or against a very basic CPU.
 
 #### Fill Variation
 The tile's color gets completely replaced when an entity moves on it.
