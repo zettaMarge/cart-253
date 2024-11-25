@@ -192,7 +192,7 @@ function drawVariationSelection() {
                 fill(255);
                 stroke(255);
             }           
-            text(GameVariation.COLORBLIND, 667, 300);
+            text(GameVariation.COLORBLIND, 682, 300);
         }
         else {
             // FILL and BLEND both use a random color as a selection highlight
@@ -218,10 +218,10 @@ function drawVariationSelection() {
             }
 
             if (v === GameVariation.FILL) {
-                text(GameVariation.FILL, 84, 300);
+                text(GameVariation.FILL, 89, 300);
             }
             else {
-                text(GameVariation.BLEND, 340, 300);
+                text(GameVariation.BLEND, 360, 300);
             }
         }
 
@@ -241,10 +241,10 @@ function drawGameInstructions() {
     textAlign(LEFT, CENTER);
     fill(255);
     noStroke();
-    textSize(28);
-    text("UP / LEFT / DOWN / RIGHT  -  PLAYER 1 MOVEMENT", 0, 450);
-    text("W  /  A   /  S   /   D    -  PLAYER 2 MOVEMENT", 0, 500);
-    text("ENTER                     -  START GAME", 0, 600);
+    textSize(27);
+    text("UP / LEFT / DOWN / RIGHT    -    PLAYER 1 MOVEMENT", 17, 450);
+    text("W  /  A   /  S   /   D      -    PLAYER 2 MOVEMENT", 17, 500);
+    text("ENTER                       -    START GAME", 17, 600);
     pop();
 
     push();
@@ -257,8 +257,8 @@ function drawGameInstructions() {
         fill(0, 0, 115);
     }
     noStroke();
-    textSize(28);
-    text(`C                         -  PLAYER 2 AS CPU (${playAgainstCPU? "ON" : "OFF"})`, 0, 550);
+    textSize(27);
+    text(`C                           -    CPU OPPONENT (${playAgainstCPU? "ON" : "OFF"})`, 17, 550);
     pop();
 }
 
@@ -427,7 +427,7 @@ function checkMenuInput(evt) {
                     colorManager = new ColorManagerFill();
                 }
                 else if (selectedVariation === GameVariation.BLEND) {
-                    //TODO init manager
+                    colorManager = new ColorManagerBlend();
                 }
                 else {
                     //TODO init manager
@@ -448,7 +448,7 @@ function checkMenuInput(evt) {
     else if (evt.key === "3" && selectedVariation !== GameVariation.COLORBLIND) {
         selectedVariation = GameVariation.COLORBLIND;
     }
-    else if (evt.key === "c") {
+    else if (evt.key === "c" || evt.key === "C") {
         playAgainstCPU = !playAgainstCPU;
     }
 }
@@ -592,7 +592,10 @@ async function initMaze() {
 async function resetMazes() {
     for (let iRow = 0; iRow < maze.tiles.length; ++iRow) {
         for (let jCol = 0; jCol < maze.tiles[iRow].length; ++jCol) {
-            if (maze.tiles[iRow][jCol].type === MazeTileMap.PLAYER_1_TRAIL || maze.tiles[iRow][jCol].type === MazeTileMap.PLAYER_2_TRAIL) {
+            if (maze.tiles[iRow][jCol].type === MazeTileMap.PLAYER_1_TRAIL ||
+                maze.tiles[iRow][jCol].type === MazeTileMap.PLAYER_2_TRAIL ||
+                maze.tiles[iRow][jCol].type === MazeTileMap.COMBINED_TRAIL)
+            {
                 maze.tiles[iRow][jCol].h = 0;
                 maze.tiles[iRow][jCol].s = 0;
                 maze.tiles[iRow][jCol].b = 255;
