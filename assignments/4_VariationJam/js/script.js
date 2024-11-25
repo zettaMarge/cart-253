@@ -123,6 +123,8 @@ let mazeData;
 // The current maze in action
 let maze;
 
+let tileSize;
+
 // The manager for changing the tiles' colors
 let colorManager = new ColorManagerFill();
 
@@ -137,7 +139,7 @@ function preload() {
  * Initializes the canvas
 */
 function setup() {
-    createCanvas(840, 840);
+    createCanvas(787.5, 787.5);
     colorMode(HSB,360,255,255);
 }
 
@@ -145,14 +147,14 @@ function setup() {
  * Draws on the canvas
 */
 function draw() {
-    if (isOnMenu) {
-        // A black rectangle to "reset" what's on the canvas
-        push();
-        fill(0);
-        noStroke();
-        rect(0, 0, width, height);
-        pop();
+    // A black rectangle to "reset" what's on the canvas
+    push();
+    fill(0);
+    noStroke();
+    rect(0, 0, width, height);
+    pop();
 
+    if (isOnMenu) {
         drawVariationSelection();
         drawGameInstructions();
     }
@@ -180,7 +182,7 @@ function drawVariationSelection() {
         textFont('Courier New');
         textAlign(CENTER, CENTER);
         strokeWeight(1.5);
-        textSize(36);
+        textSize(34);
 
         if (v === GameVariation.COLORBLIND) {
             // COLORBLIND uses gray as a selection highlight
@@ -192,7 +194,7 @@ function drawVariationSelection() {
                 fill(255);
                 stroke(255);
             }           
-            text(GameVariation.COLORBLIND, 682, 300);
+            text(GameVariation.COLORBLIND, 640, 300);
         }
         else {
             // FILL and BLEND both use a random color as a selection highlight
@@ -221,7 +223,7 @@ function drawVariationSelection() {
                 text(GameVariation.FILL, 89, 300);
             }
             else {
-                text(GameVariation.BLEND, 360, 300);
+                text(GameVariation.BLEND, 332.5, 300);
             }
         }
 
@@ -241,7 +243,7 @@ function drawGameInstructions() {
     textAlign(LEFT, CENTER);
     fill(255);
     noStroke();
-    textSize(27);
+    textSize(25);
     text("UP / LEFT / DOWN / RIGHT    -    PLAYER 1 MOVEMENT", 17, 450);
     text("W  /  A   /  S   /   D      -    PLAYER 2 MOVEMENT", 17, 500);
     text("ENTER                       -    START GAME", 17, 600);
@@ -257,7 +259,7 @@ function drawGameInstructions() {
         fill(0, 0, 115);
     }
     noStroke();
-    textSize(27);
+    textSize(25);
     text(`C                           -    CPU OPPONENT (${playAgainstCPU? "ON" : "OFF"})`, 17, 550);
     pop();
 }
@@ -271,7 +273,7 @@ function drawMaze() {
             push();
             noStroke();
             fill(maze.tiles[iRow][jCol].h, maze.tiles[iRow][jCol].s, maze.tiles[iRow][jCol].b);
-            rect(jCol * maze.tileSize, iRow * maze.tileSize, maze.tileSize);
+            rect(jCol * tileSize, iRow * tileSize, tileSize);
             pop();
         }
     }
@@ -283,7 +285,7 @@ function drawMaze() {
     fill(255);
     noStroke();
     textSize(28);
-    text(maze.name, maze.tileSize, height - maze.tileSize/2.5);
+    text(maze.name, tileSize, height - tileSize/2.5);
     pop();
 
     // Instruction to return to menu
@@ -293,7 +295,7 @@ function drawMaze() {
     fill(255);
     noStroke();
     textSize(28);
-    text("ESC - RETURN TO MENU", width - maze.tileSize, height - maze.tileSize/2.5);
+    text("ESC - RETURN TO MENU", width - tileSize, height - tileSize/2.5);
     pop();
 }
 
@@ -346,23 +348,23 @@ function moveCPU() {
     
         // Adjust the CPU's position and overlapping tiles
         if (move.iIncr > 0) {
-            player2.y += maze.tileSize;
-            player2.iRow = floor(player2.y / maze.tileSize);
+            player2.y += tileSize;
+            player2.iRow = floor(player2.y / tileSize);
             colorManager.changeTileColor(player2.iRow, player2.jCol, false);
         }
         else if (move.iIncr < 0) {
-            player2.y -= maze.tileSize;
-            player2.iRow = floor(player2.y / maze.tileSize);
+            player2.y -= tileSize;
+            player2.iRow = floor(player2.y / tileSize);
             colorManager.changeTileColor(player2.iRow, player2.jCol, false);
         }
         else if (move.jIncr > 0) {
-            player2.x += maze.tileSize;
-            player2.jCol = floor(player2.x / maze.tileSize);
+            player2.x += tileSize;
+            player2.jCol = floor(player2.x / tileSize);
             colorManager.changeTileColor(player2.iRow, player2.jCol, false);
         }
         else if (move.jIncr < 0) {
-            player2.x -= maze.tileSize;
-            player2.jCol = floor(player2.x / maze.tileSize);
+            player2.x -= tileSize;
+            player2.jCol = floor(player2.x / tileSize);
             colorManager.changeTileColor(player2.iRow, player2.jCol, false);
         }
 
@@ -464,52 +466,52 @@ function checkGameInput(evt) {
     }
     else {
         if (evt.key === "ArrowUp" && maze.tiles[player1.iRow - 1][player1.jCol].type !== 1) {
-            player1.y -= maze.tileSize;
-            player1.iRow = floor(player1.y / maze.tileSize);
+            player1.y -= tileSize;
+            player1.iRow = floor(player1.y / tileSize);
             colorManager.changeTileColor(player1.iRow, player1.jCol, true);
             // TODO check overlap with player 2
         }
         else if (evt.key === "ArrowDown" && maze.tiles[player1.iRow + 1][player1.jCol].type !== 1) {
-            player1.y += maze.tileSize;
-            player1.iRow = floor(player1.y / maze.tileSize);
+            player1.y += tileSize;
+            player1.iRow = floor(player1.y / tileSize);
             colorManager.changeTileColor(player1.iRow, player1.jCol, true);
             // TODO check overlap with player 2
         }
         else if (evt.key === "ArrowLeft" && maze.tiles[player1.iRow][player1.jCol - 1].type !== 1) {
-            player1.x -= maze.tileSize;
-            player1.jCol = floor(player1.x / maze.tileSize);
+            player1.x -= tileSize;
+            player1.jCol = floor(player1.x / tileSize);
             colorManager.changeTileColor(player1.iRow, player1.jCol, true);
             // TODO check overlap with player 2
         }
         else if (evt.key === "ArrowRight" && maze.tiles[player1.iRow][player1.jCol + 1].type !== 1) {
-            player1.x += maze.tileSize;
-            player1.jCol = floor(player1.x / maze.tileSize);
+            player1.x += tileSize;
+            player1.jCol = floor(player1.x / tileSize);
             colorManager.changeTileColor(player1.iRow, player1.jCol, true);
             // TODO check overlap with player 2
         }
         
         if (!playAgainstCPU) {
             if (evt.key === "w" && maze.tiles[player2.iRow - 1][player2.jCol].type !== 1) {
-                player2.y -= maze.tileSize;
-                player2.iRow = floor(player2.y / maze.tileSize);
+                player2.y -= tileSize;
+                player2.iRow = floor(player2.y / tileSize);
                 colorManager.changeTileColor(player2.iRow, player2.jCol, false);
                 // TODO check overlap with player 1
             }
             else if (evt.key === "s" && maze.tiles[player2.iRow + 1][player2.jCol].type !== 1) {
-                player2.y += maze.tileSize;
-                player2.iRow = floor(player2.y / maze.tileSize);
+                player2.y += tileSize;
+                player2.iRow = floor(player2.y / tileSize);
                 colorManager.changeTileColor(player2.iRow, player2.jCol, false);
                 // TODO check overlap with player 1
             }
             else if (evt.key === "a" && maze.tiles[player2.iRow][player2.jCol - 1].type !== 1) {
-                player2.x -= maze.tileSize;
-                player2.jCol = floor(player2.x / maze.tileSize);
+                player2.x -= tileSize;
+                player2.jCol = floor(player2.x / tileSize);
                 colorManager.changeTileColor(player2.iRow, player2.jCol, false);
                 // TODO check overlap with player 1
             }
             else if (evt.key === "d" && maze.tiles[player2.iRow][player2.jCol + 1].type !== 1) {
-                player2.x += maze.tileSize;
-                player2.jCol = floor(player2.x / maze.tileSize);
+                player2.x += tileSize;
+                player2.jCol = floor(player2.x / tileSize);
                 colorManager.changeTileColor(player2.iRow, player2.jCol, false);
                 // TODO check overlap with player 1
             }
@@ -523,13 +525,14 @@ function checkGameInput(evt) {
 async function initMaze() {
     // Select a random maze
     maze = random(mazeData.dark_mazes);
+    tileSize = height/maze.tiles.length;
 
     // Reset the players' data
-    player1.size = maze.tileSize - 10;
+    player1.size = tileSize - 10;
     player1.iRow = undefined;
     player1.jCol = undefined;
 
-    player2.size = maze.tileSize - 10;
+    player2.size = tileSize - 10;
     player2.iRow = undefined;
     player2.jCol = undefined;
     
@@ -542,10 +545,10 @@ async function initMaze() {
             if (maze.tiles[iRow][jCol].type === MazeTileMap.PLAYER_1_SPAWN) {
                 // Stores the indexes of the tile player 1 starts on
                 player1.iRow = iRow;
-                player1.x = jCol * maze.tileSize + maze.tileSize/2;
+                player1.x = jCol * tileSize + tileSize/2;
 
                 player1.jCol = jCol;
-                player1.y = iRow * maze.tileSize + maze.tileSize/2;
+                player1.y = iRow * tileSize + tileSize/2;
 
                 // Randomize the color of player 1
                 selectedID = random(colorIDs);
@@ -560,10 +563,10 @@ async function initMaze() {
             if (maze.tiles[iRow][jCol].type === MazeTileMap.PLAYER_2_SPAWN) {
                 // Stores the indexes of the tile the player 2 entity starts on
                 player2.iRow = iRow;
-                player2.x = jCol * maze.tileSize + maze.tileSize/2;
+                player2.x = jCol * tileSize + tileSize/2;
 
                 player2.jCol = jCol;
-                player2.y = iRow * maze.tileSize + maze.tileSize/2;
+                player2.y = iRow * tileSize + tileSize/2;
 
                 // Randomize the color of the player 2 entity
                 selectedID = random(colorIDs);
