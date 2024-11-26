@@ -9,6 +9,7 @@ class MazeTileMap {
     static #_PLAYER_2_SPAWN = 4;
     static #_PLAYER_2_TRAIL = 5;
     static #_COMBINED_TRAIL = 6;
+    static #_NEW_WALL = 7;
 
     static get EMPTY() { return this.#_EMPTY; }
     static get WALL() { return this.#_WALL; }
@@ -17,4 +18,5 @@ class MazeTileMap {
     static get PLAYER_2_SPAWN() { return this.#_PLAYER_2_SPAWN; }
     static get PLAYER_2_TRAIL() { return this.#_PLAYER_2_TRAIL; }
     static get COMBINED_TRAIL() { return this.#_COMBINED_TRAIL; }
+    static get NEW_WALL() { return this.#_NEW_WALL; }
 }

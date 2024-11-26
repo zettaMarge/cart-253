@@ -63,15 +63,19 @@ const entityColors = [
         outline: 255
     },
     { // Dark Gray
-        h: 0,
-        s: 0,
-        b: 75,
+        entity: {
+            h: 0,
+            s: 0,
+            b: 75,
+        },
         outline: 255
     },
     { // Light Gray
-        h: 0,
-        s: 0,
-        b: 150,
+        entity: {
+            h: 0,
+            s: 0,
+            b: 150,
+        },
         outline: 0
     }
 ];
@@ -155,6 +159,7 @@ function draw() {
     pop();
 
     if (isOnMenu) {
+        drawTitle();
         drawVariationSelection();
         drawGameInstructions();
     }
@@ -174,6 +179,21 @@ function draw() {
 }
 
 /**
+ * Writes the title of the game
+ */
+function drawTitle() {
+    push();
+    textFont('Courier New');
+    textAlign(CENTER, CENTER);
+    strokeWeight(3.5);
+    textSize(72);
+    fill(255);
+    stroke(255);
+    text("MINOT-ART ATTACK", width/2, 150);
+    pop();
+}
+
+/**
  * Writes the game's variations and highlights the currently selected one
  */
 function drawVariationSelection() {
@@ -181,7 +201,7 @@ function drawVariationSelection() {
         push();
         textFont('Courier New');
         textAlign(CENTER, CENTER);
-        strokeWeight(1.5);
+        strokeWeight(2.5);
         textSize(34);
 
         if (v === GameVariation.COLORBLIND) {
@@ -312,7 +332,11 @@ function moveCPU() {
         // Horizontal adjacent tiles check for walls
         for (let i = 0; i < 2; ++i) {
             type = maze.tiles[player2.iRow + (-1) ** i][player2.jCol].type;
-            if (type !== MazeTileMap.WALL) {
+            if (
+                type !== MazeTileMap.WALL &&
+                type !== MazeTileMap.NEW_WALL &&
+                maze.tiles[player2.iRow + (-1) ** i][player2.jCol].b > 0
+            ) {
                 // Prioritize tiles that aren't the CPU's own trail
                 if (type === MazeTileMap.EMPTY || type === MazeTileMap.PLAYER_1_SPAWN || type === MazeTileMap.PLAYER_1_TRAIL) {
                     optimalMoves.push({iIncr: (-1) ** i, jIncr: 0});
@@ -326,7 +350,11 @@ function moveCPU() {
         // Vertical adjacent tiles check for walls
         for (let j = 0; j < 2; ++j) {
             type = maze.tiles[player2.iRow][player2.jCol + (-1) ** j].type;
-            if (type !== MazeTileMap.WALL) {
+            if (
+                type !== MazeTileMap.WALL &&
+                type !== MazeTileMap.NEW_WALL &&
+                maze.tiles[player2.iRow][player2.jCol + (-1) ** j].b > 0
+            ) {
                 // Prioritize tiles that aren't the CPU's own trail
                 if (type === MazeTileMap.EMPTY || type === MazeTileMap.PLAYER_1_SPAWN || type === MazeTileMap.PLAYER_1_TRAIL) {
                     optimalMoves.push({iIncr: 0, jIncr: (-1) ** j});
@@ -346,30 +374,33 @@ function moveCPU() {
             move = random(otherMoves);
         }
     
-        // Adjust the CPU's position and overlapping tiles
-        if (move.iIncr > 0) {
-            player2.y += tileSize;
-            player2.iRow = floor(player2.y / tileSize);
-            colorManager.changeTileColor(player2.iRow, player2.jCol, false);
-        }
-        else if (move.iIncr < 0) {
-            player2.y -= tileSize;
-            player2.iRow = floor(player2.y / tileSize);
-            colorManager.changeTileColor(player2.iRow, player2.jCol, false);
-        }
-        else if (move.jIncr > 0) {
-            player2.x += tileSize;
-            player2.jCol = floor(player2.x / tileSize);
-            colorManager.changeTileColor(player2.iRow, player2.jCol, false);
-        }
-        else if (move.jIncr < 0) {
-            player2.x -= tileSize;
-            player2.jCol = floor(player2.x / tileSize);
-            colorManager.changeTileColor(player2.iRow, player2.jCol, false);
-        }
+        if (move !== undefined) {
+            // Adjust the CPU's position and overlapping tiles
+            if (move.iIncr > 0) {
+                player2.y += tileSize;
+                player2.iRow = floor(player2.y / tileSize);
+                colorManager.changeTileColor(player2.iRow, player2.jCol, false);
+            }
+            else if (move.iIncr < 0) {
+                player2.y -= tileSize;
+                player2.iRow = floor(player2.y / tileSize);
+                colorManager.changeTileColor(player2.iRow, player2.jCol, false);
+            }
+            else if (move.jIncr > 0) {
+                player2.x += tileSize;
+                player2.jCol = floor(player2.x / tileSize);
+                colorManager.changeTileColor(player2.iRow, player2.jCol, false);
+            }
+            else if (move.jIncr < 0) {
+                player2.x -= tileSize;
+                player2.jCol = floor(player2.x / tileSize);
+                colorManager.changeTileColor(player2.iRow, player2.jCol, false);
+            }
 
-        cpuTimer.lastMoveFrameCount = frameCount;
-        cpuTimer.isMoving = false;
+            cpuTimer.lastMoveFrameCount = frameCount;
+            cpuTimer.isMoving = false;
+            // TODO play sfx
+        }
     }
 }
 
@@ -432,7 +463,7 @@ function checkMenuInput(evt) {
                     colorManager = new ColorManagerBlend();
                 }
                 else {
-                    //TODO init manager
+                    colorManager = new ColorManagerColorblind();
                 }
         
                 isOnMenu = false;
@@ -465,55 +496,103 @@ function checkGameInput(evt) {
         resetMazes();
     }
     else {
-        if (evt.key === "ArrowUp" && maze.tiles[player1.iRow - 1][player1.jCol].type !== 1) {
+        if (
+            evt.key === "ArrowUp" && 
+            maze.tiles[player1.iRow - 1][player1.jCol].type !== MazeTileMap.WALL &&
+            maze.tiles[player1.iRow - 1][player1.jCol].type !== MazeTileMap.NEW_WALL &&
+            maze.tiles[player1.iRow - 1][player1.jCol].b > 0 // Since we don't change the spawns' types, but we still consider it a new wall if it's black
+        ) {
             player1.y -= tileSize;
             player1.iRow = floor(player1.y / tileSize);
             colorManager.changeTileColor(player1.iRow, player1.jCol, true);
             // TODO check overlap with player 2
+            // TODO play sfx
         }
-        else if (evt.key === "ArrowDown" && maze.tiles[player1.iRow + 1][player1.jCol].type !== 1) {
+        else if (
+            evt.key === "ArrowDown" &&
+            maze.tiles[player1.iRow + 1][player1.jCol].type !== MazeTileMap.WALL &&
+            maze.tiles[player1.iRow + 1][player1.jCol].type !== MazeTileMap.NEW_WALL &&
+            maze.tiles[player1.iRow + 1][player1.jCol].b > 0
+        ) {
             player1.y += tileSize;
             player1.iRow = floor(player1.y / tileSize);
             colorManager.changeTileColor(player1.iRow, player1.jCol, true);
             // TODO check overlap with player 2
+            // TODO play sfx
         }
-        else if (evt.key === "ArrowLeft" && maze.tiles[player1.iRow][player1.jCol - 1].type !== 1) {
+        else if (
+            evt.key === "ArrowLeft" && 
+            maze.tiles[player1.iRow][player1.jCol - 1].type !== MazeTileMap.WALL &&
+            maze.tiles[player1.iRow][player1.jCol - 1].type !== MazeTileMap.NEW_WALL &&
+            maze.tiles[player1.iRow][player1.jCol - 1].b > 0
+        ) {
             player1.x -= tileSize;
             player1.jCol = floor(player1.x / tileSize);
             colorManager.changeTileColor(player1.iRow, player1.jCol, true);
             // TODO check overlap with player 2
+            // TODO play sfx
         }
-        else if (evt.key === "ArrowRight" && maze.tiles[player1.iRow][player1.jCol + 1].type !== 1) {
+        else if (
+            evt.key === "ArrowRight" && 
+            maze.tiles[player1.iRow][player1.jCol + 1].type !== MazeTileMap.WALL &&
+            maze.tiles[player1.iRow][player1.jCol + 1].type !== MazeTileMap.NEW_WALL &&
+            maze.tiles[player1.iRow][player1.jCol + 1].b > 0
+        ) {
             player1.x += tileSize;
             player1.jCol = floor(player1.x / tileSize);
             colorManager.changeTileColor(player1.iRow, player1.jCol, true);
             // TODO check overlap with player 2
+            // TODO play sfx
         }
         
         if (!playAgainstCPU) {
-            if (evt.key === "w" && maze.tiles[player2.iRow - 1][player2.jCol].type !== 1) {
+            if (
+                evt.key === "w" && 
+                maze.tiles[player2.iRow - 1][player2.jCol].type !== MazeTileMap.WALL &&
+                maze.tiles[player2.iRow - 1][player2.jCol].type !== MazeTileMap.NEW_WALL &&
+                maze.tiles[player2.iRow - 1][player2.jCol].b > 0
+            ) {
                 player2.y -= tileSize;
                 player2.iRow = floor(player2.y / tileSize);
                 colorManager.changeTileColor(player2.iRow, player2.jCol, false);
                 // TODO check overlap with player 1
+                // TODO play sfx
             }
-            else if (evt.key === "s" && maze.tiles[player2.iRow + 1][player2.jCol].type !== 1) {
+            else if (
+                evt.key === "s" && 
+                maze.tiles[player2.iRow + 1][player2.jCol].type !== MazeTileMap.WALL &&
+                maze.tiles[player2.iRow + 1][player2.jCol].type !== MazeTileMap.NEW_WALL &&
+                maze.tiles[player2.iRow + 1][player2.jCol].b > 0
+            ) {
                 player2.y += tileSize;
                 player2.iRow = floor(player2.y / tileSize);
                 colorManager.changeTileColor(player2.iRow, player2.jCol, false);
                 // TODO check overlap with player 1
+                // TODO play sfx
             }
-            else if (evt.key === "a" && maze.tiles[player2.iRow][player2.jCol - 1].type !== 1) {
+            else if (
+                evt.key === "a" && 
+                maze.tiles[player2.iRow][player2.jCol - 1].type !== MazeTileMap.WALL &&
+                maze.tiles[player2.iRow][player2.jCol - 1].type !== MazeTileMap.NEW_WALL &&
+                maze.tiles[player2.iRow][player2.jCol - 1].b > 0
+            ) {
                 player2.x -= tileSize;
                 player2.jCol = floor(player2.x / tileSize);
                 colorManager.changeTileColor(player2.iRow, player2.jCol, false);
                 // TODO check overlap with player 1
+                // TODO play sfx
             }
-            else if (evt.key === "d" && maze.tiles[player2.iRow][player2.jCol + 1].type !== 1) {
+            else if (
+                evt.key === "d" && 
+                maze.tiles[player2.iRow][player2.jCol + 1].type !== MazeTileMap.WALL &&
+                maze.tiles[player2.iRow][player2.jCol + 1].type !== MazeTileMap.NEW_WALL &&
+                maze.tiles[player2.iRow][player2.jCol + 1].b > 0
+            ) {
                 player2.x += tileSize;
                 player2.jCol = floor(player2.x / tileSize);
                 colorManager.changeTileColor(player2.iRow, player2.jCol, false);
                 // TODO check overlap with player 1
+                // TODO play sfx
             }
         }
     }
@@ -536,28 +615,41 @@ async function initMaze() {
     player2.iRow = undefined;
     player2.jCol = undefined;
     
-    // TODO edit for colorblind mode
-    let colorIDs = [0,1,2,3];
+    // Prepare which colors players can get
+    let colorIDs;
+    if (selectedVariation === GameVariation.COLORBLIND) {
+        colorIDs = [4,5];
+    }
+    else {
+        colorIDs = [0,1,2,3];
+    }
     let selectedID;
 
     for (let iRow = 0; iRow < maze.tiles.length; ++iRow) {
         for (let jCol = 0; jCol < maze.tiles[iRow].length; ++jCol) {
             if (maze.tiles[iRow][jCol].type === MazeTileMap.PLAYER_1_SPAWN) {
-                // Stores the indexes of the tile player 1 starts on
+                // Stores the indexes of the tile the player 1 entity starts on
                 player1.iRow = iRow;
                 player1.x = jCol * tileSize + tileSize/2;
 
                 player1.jCol = jCol;
                 player1.y = iRow * tileSize + tileSize/2;
 
-                // Randomize the color of player 1
+                // Randomize the color of the player 1 entity
                 selectedID = random(colorIDs);
                 colorIDs = colorIDs.filter(c => c !== selectedID);
                 player1.colorFill = entityColors[selectedID];
                 // Fix the starting tile's color
-                maze.tiles[iRow][jCol].h = entityColors[selectedID].trail.h;
-                maze.tiles[iRow][jCol].s = entityColors[selectedID].trail.s;
-                maze.tiles[iRow][jCol].b = entityColors[selectedID].trail.b;
+                if (selectedVariation === GameVariation.COLORBLIND) {
+                    maze.tiles[iRow][jCol].h = 0;
+                    maze.tiles[iRow][jCol].s = 0;
+                    maze.tiles[iRow][jCol].b = 223.125;
+                }
+                else {
+                    maze.tiles[iRow][jCol].h = entityColors[selectedID].trail.h;
+                    maze.tiles[iRow][jCol].s = entityColors[selectedID].trail.s;
+                    maze.tiles[iRow][jCol].b = entityColors[selectedID].trail.b;
+                }
             }
 
             if (maze.tiles[iRow][jCol].type === MazeTileMap.PLAYER_2_SPAWN) {
@@ -573,9 +665,16 @@ async function initMaze() {
                 colorIDs = colorIDs.filter(c => c !== selectedID);
                 player2.colorFill = entityColors[selectedID];
                 // Fix the starting tile's color
-                maze.tiles[iRow][jCol].h = entityColors[selectedID].trail.h;
-                maze.tiles[iRow][jCol].s = entityColors[selectedID].trail.s;
-                maze.tiles[iRow][jCol].b = entityColors[selectedID].trail.b;
+                if (selectedVariation === GameVariation.COLORBLIND) {
+                    maze.tiles[iRow][jCol].h = 0;
+                    maze.tiles[iRow][jCol].s = 0;
+                    maze.tiles[iRow][jCol].b = 223.125;
+                }
+                else {
+                    maze.tiles[iRow][jCol].h = entityColors[selectedID].trail.h;
+                    maze.tiles[iRow][jCol].s = entityColors[selectedID].trail.s;
+                    maze.tiles[iRow][jCol].b = entityColors[selectedID].trail.b;
+                }
             }
 
             if (player1.iRow !== undefined && player1.jCol !== undefined && player2.iRow !== undefined && player2.jCol !== undefined) {
@@ -595,10 +694,12 @@ async function initMaze() {
 async function resetMazes() {
     for (let iRow = 0; iRow < maze.tiles.length; ++iRow) {
         for (let jCol = 0; jCol < maze.tiles[iRow].length; ++jCol) {
-            if (maze.tiles[iRow][jCol].type === MazeTileMap.PLAYER_1_TRAIL ||
+            if (
+                maze.tiles[iRow][jCol].type === MazeTileMap.PLAYER_1_TRAIL ||
                 maze.tiles[iRow][jCol].type === MazeTileMap.PLAYER_2_TRAIL ||
-                maze.tiles[iRow][jCol].type === MazeTileMap.COMBINED_TRAIL)
-            {
+                maze.tiles[iRow][jCol].type === MazeTileMap.COMBINED_TRAIL ||
+                maze.tiles[iRow][jCol].type === MazeTileMap.NEW_WALL
+            ) {
                 maze.tiles[iRow][jCol].h = 0;
                 maze.tiles[iRow][jCol].s = 0;
                 maze.tiles[iRow][jCol].b = 255;

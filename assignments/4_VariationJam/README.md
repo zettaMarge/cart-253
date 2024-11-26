@@ -12,7 +12,7 @@ The tile's color gets completely replaced when an entity moves on it.
 When going over the opponent's tiles, the colors get mixed.
 
 #### Colorblind Variation
-TODO
+As the players' paths make the tiles get darker, new walls appear.
 
 ### Credits
 This project uses:
