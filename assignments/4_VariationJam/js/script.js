@@ -81,26 +81,39 @@ const entityColors = [
 ];
 
 // The player 1 entity
-// Has a position, the indexes of the current overlapping tile, a size, and color values
+// Has a position, the indexes of the current overlapping tile, a size, color values,
+// and properties to manage the stunned state
 const player1 = {
     x: undefined,
     y: undefined,
     iRow: undefined,
     jCol: undefined,
     size: undefined,
-    colorFill: undefined
+    colorFill: undefined,
+    isStunned: false,
+    isVisible: true,
+    currentTimer: 3,
+    stunStartFrameCount: undefined
 };
 
 // The player 2 entity
-// Has a position, the indexes of the current overlapping tile, a size, and color values
+// Has a position, the indexes of the current overlapping tile, a size, color values,
+// and properties to manage the stunned state
 const player2 = {
     x: undefined,
     y: undefined,
     iRow: undefined,
     jCol: undefined,
     size: undefined,
-    colorFill: undefined
+    colorFill: undefined,
+    isStunned: false,
+    isVisible: true,
+    currentTimer: 3,
+    stunStartFrameCount: undefined
 };
+
+// The value to reinitialize the stun timers
+const stunTimerInit = 3;
 
 // Whether the menu is shown or not
 let isOnMenu = true;
@@ -127,6 +140,7 @@ let mazeData;
 // The current maze in action
 let maze;
 
+// How big each tile is
 let tileSize;
 
 // The manager for changing the tiles' colors
@@ -169,12 +183,53 @@ function draw() {
 
         if (playAgainstCPU) {
             player2Name = "CPU";
-            moveCPU();
-            // TODO check overlap with player 1
+
+            if (!player2.isStunned) {
+                moveCPU();
+            }
         }
         
-        drawPlayer(player2, player2Name);
-        drawPlayer(player1, 1);
+        // Player 2 stun timer check
+        if (player2.isStunned && player2.stunStartFrameCount !== undefined) {
+            if ((frameCount - player2.stunStartFrameCount) % 30 == 0 && player2.currentTimer > 0) {
+                player2.isVisible = !player2.isVisible;
+                player2.currentTimer -= 0.5;
+            }
+
+            if (player2.currentTimer === 0) {
+                player2.isVisible = true;
+                player2.isStunned = false;
+                player2.stunStartFrameCount = undefined;
+                player2.currentTimer = stunTimerInit;
+            }
+            else if (player2.isVisible) {
+                drawPlayer(player2, player2Name);
+            }
+        }
+        else {
+            drawPlayer(player2, player2Name);
+        }
+
+        // Player 1 stun timer check
+        if (player1.isStunned && player1.stunStartFrameCount !== undefined) {
+            if ((frameCount - player1.stunStartFrameCount) % 30 == 0 && player1.currentTimer > 0) {
+                player1.isVisible = !player1.isVisible;
+                player1.currentTimer -= 0.5;
+            }
+
+            if (player1.currentTimer === 0) {
+                player1.isVisible = true;
+                player1.isStunned = false;
+                player1.stunStartFrameCount = undefined;
+                player1.currentTimer = stunTimerInit;
+            }
+            else if (player1.isVisible) {
+                drawPlayer(player1, 1);
+            }
+        }
+        else {
+            drawPlayer(player1, 1);
+        }
     }
 }
 
@@ -378,28 +433,23 @@ function moveCPU() {
             // Adjust the CPU's position and overlapping tiles
             if (move.iIncr > 0) {
                 player2.y += tileSize;
-                player2.iRow = floor(player2.y / tileSize);
-                colorManager.changeTileColor(player2.iRow, player2.jCol, false);
+                movePlayer(player2, true, false);
             }
             else if (move.iIncr < 0) {
                 player2.y -= tileSize;
-                player2.iRow = floor(player2.y / tileSize);
-                colorManager.changeTileColor(player2.iRow, player2.jCol, false);
+                movePlayer(player2, true, false);
             }
             else if (move.jIncr > 0) {
                 player2.x += tileSize;
-                player2.jCol = floor(player2.x / tileSize);
-                colorManager.changeTileColor(player2.iRow, player2.jCol, false);
+                movePlayer(player2, false, false);
             }
             else if (move.jIncr < 0) {
                 player2.x -= tileSize;
-                player2.jCol = floor(player2.x / tileSize);
-                colorManager.changeTileColor(player2.iRow, player2.jCol, false);
+                movePlayer(player2, false, false);
             }
 
             cpuTimer.lastMoveFrameCount = frameCount;
             cpuTimer.isMoving = false;
-            // TODO play sfx
         }
     }
 }
@@ -425,14 +475,6 @@ function drawPlayer(player, name) {
     textSize(16);
     text(name, player.x, player.y);
     pop();
-}
-
-/**
- * Checks whether a player overlaps the other and manages the outcome
- * @param {boolean} isPlayer1Init If player 1 is the one initiating the check
- */
-function checkPlayerOverlap(isPlayer1Init) {
-    // TODO
 }
 
 /**
@@ -496,104 +538,120 @@ function checkGameInput(evt) {
         resetMazes();
     }
     else {
-        if (
-            evt.key === "ArrowUp" && 
-            maze.tiles[player1.iRow - 1][player1.jCol].type !== MazeTileMap.WALL &&
-            maze.tiles[player1.iRow - 1][player1.jCol].type !== MazeTileMap.NEW_WALL &&
-            maze.tiles[player1.iRow - 1][player1.jCol].b > 0 // Since we don't change the spawns' types, but we still consider it a new wall if it's black
-        ) {
-            player1.y -= tileSize;
-            player1.iRow = floor(player1.y / tileSize);
-            colorManager.changeTileColor(player1.iRow, player1.jCol, true);
-            // TODO check overlap with player 2
-            // TODO play sfx
-        }
-        else if (
-            evt.key === "ArrowDown" &&
-            maze.tiles[player1.iRow + 1][player1.jCol].type !== MazeTileMap.WALL &&
-            maze.tiles[player1.iRow + 1][player1.jCol].type !== MazeTileMap.NEW_WALL &&
-            maze.tiles[player1.iRow + 1][player1.jCol].b > 0
-        ) {
-            player1.y += tileSize;
-            player1.iRow = floor(player1.y / tileSize);
-            colorManager.changeTileColor(player1.iRow, player1.jCol, true);
-            // TODO check overlap with player 2
-            // TODO play sfx
-        }
-        else if (
-            evt.key === "ArrowLeft" && 
-            maze.tiles[player1.iRow][player1.jCol - 1].type !== MazeTileMap.WALL &&
-            maze.tiles[player1.iRow][player1.jCol - 1].type !== MazeTileMap.NEW_WALL &&
-            maze.tiles[player1.iRow][player1.jCol - 1].b > 0
-        ) {
-            player1.x -= tileSize;
-            player1.jCol = floor(player1.x / tileSize);
-            colorManager.changeTileColor(player1.iRow, player1.jCol, true);
-            // TODO check overlap with player 2
-            // TODO play sfx
-        }
-        else if (
-            evt.key === "ArrowRight" && 
-            maze.tiles[player1.iRow][player1.jCol + 1].type !== MazeTileMap.WALL &&
-            maze.tiles[player1.iRow][player1.jCol + 1].type !== MazeTileMap.NEW_WALL &&
-            maze.tiles[player1.iRow][player1.jCol + 1].b > 0
-        ) {
-            player1.x += tileSize;
-            player1.jCol = floor(player1.x / tileSize);
-            colorManager.changeTileColor(player1.iRow, player1.jCol, true);
-            // TODO check overlap with player 2
-            // TODO play sfx
+        if (!player1.isStunned) {
+            if (
+                evt.key === "ArrowUp" && 
+                maze.tiles[player1.iRow - 1][player1.jCol].type !== MazeTileMap.WALL &&
+                maze.tiles[player1.iRow - 1][player1.jCol].type !== MazeTileMap.NEW_WALL &&
+                maze.tiles[player1.iRow - 1][player1.jCol].b > 0 // Since we don't change the spawns' types, but we still consider it a new wall if it's black
+            ) {
+                player1.y -= tileSize;
+                movePlayer(player1, true, true);
+            }
+            else if (
+                evt.key === "ArrowDown" &&
+                maze.tiles[player1.iRow + 1][player1.jCol].type !== MazeTileMap.WALL &&
+                maze.tiles[player1.iRow + 1][player1.jCol].type !== MazeTileMap.NEW_WALL &&
+                maze.tiles[player1.iRow + 1][player1.jCol].b > 0
+            ) {
+                player1.y += tileSize;
+                movePlayer(player1, true, true);
+            }
+            else if (
+                evt.key === "ArrowLeft" && 
+                maze.tiles[player1.iRow][player1.jCol - 1].type !== MazeTileMap.WALL &&
+                maze.tiles[player1.iRow][player1.jCol - 1].type !== MazeTileMap.NEW_WALL &&
+                maze.tiles[player1.iRow][player1.jCol - 1].b > 0
+            ) {
+                player1.x -= tileSize;
+                movePlayer(player1, false, true);
+            }
+            else if (
+                evt.key === "ArrowRight" && 
+                maze.tiles[player1.iRow][player1.jCol + 1].type !== MazeTileMap.WALL &&
+                maze.tiles[player1.iRow][player1.jCol + 1].type !== MazeTileMap.NEW_WALL &&
+                maze.tiles[player1.iRow][player1.jCol + 1].b > 0
+            ) {
+                player1.x += tileSize;
+                movePlayer(player1, false, true);
+            }
         }
         
         if (!playAgainstCPU) {
-            if (
-                evt.key === "w" && 
-                maze.tiles[player2.iRow - 1][player2.jCol].type !== MazeTileMap.WALL &&
-                maze.tiles[player2.iRow - 1][player2.jCol].type !== MazeTileMap.NEW_WALL &&
-                maze.tiles[player2.iRow - 1][player2.jCol].b > 0
-            ) {
-                player2.y -= tileSize;
-                player2.iRow = floor(player2.y / tileSize);
-                colorManager.changeTileColor(player2.iRow, player2.jCol, false);
-                // TODO check overlap with player 1
-                // TODO play sfx
+            if (!player2.isStunned) {
+                if (
+                    evt.key === "w" && 
+                    maze.tiles[player2.iRow - 1][player2.jCol].type !== MazeTileMap.WALL &&
+                    maze.tiles[player2.iRow - 1][player2.jCol].type !== MazeTileMap.NEW_WALL &&
+                    maze.tiles[player2.iRow - 1][player2.jCol].b > 0
+                ) {
+                    player2.y -= tileSize;
+                    movePlayer(player2, true, false);
+                }
+                else if (
+                    evt.key === "s" && 
+                    maze.tiles[player2.iRow + 1][player2.jCol].type !== MazeTileMap.WALL &&
+                    maze.tiles[player2.iRow + 1][player2.jCol].type !== MazeTileMap.NEW_WALL &&
+                    maze.tiles[player2.iRow + 1][player2.jCol].b > 0
+                ) {
+                    player2.y += tileSize;
+                    movePlayer(player2, true, false);
+                }
+                else if (
+                    evt.key === "a" && 
+                    maze.tiles[player2.iRow][player2.jCol - 1].type !== MazeTileMap.WALL &&
+                    maze.tiles[player2.iRow][player2.jCol - 1].type !== MazeTileMap.NEW_WALL &&
+                    maze.tiles[player2.iRow][player2.jCol - 1].b > 0
+                ) {
+                    player2.x -= tileSize;
+                    movePlayer(player2, false, false);
+                }
+                else if (
+                    evt.key === "d" && 
+                    maze.tiles[player2.iRow][player2.jCol + 1].type !== MazeTileMap.WALL &&
+                    maze.tiles[player2.iRow][player2.jCol + 1].type !== MazeTileMap.NEW_WALL &&
+                    maze.tiles[player2.iRow][player2.jCol + 1].b > 0
+                ) {
+                    player2.x += tileSize;
+                    movePlayer(player2, false, false);
+                }
             }
-            else if (
-                evt.key === "s" && 
-                maze.tiles[player2.iRow + 1][player2.jCol].type !== MazeTileMap.WALL &&
-                maze.tiles[player2.iRow + 1][player2.jCol].type !== MazeTileMap.NEW_WALL &&
-                maze.tiles[player2.iRow + 1][player2.jCol].b > 0
-            ) {
-                player2.y += tileSize;
-                player2.iRow = floor(player2.y / tileSize);
-                colorManager.changeTileColor(player2.iRow, player2.jCol, false);
-                // TODO check overlap with player 1
-                // TODO play sfx
-            }
-            else if (
-                evt.key === "a" && 
-                maze.tiles[player2.iRow][player2.jCol - 1].type !== MazeTileMap.WALL &&
-                maze.tiles[player2.iRow][player2.jCol - 1].type !== MazeTileMap.NEW_WALL &&
-                maze.tiles[player2.iRow][player2.jCol - 1].b > 0
-            ) {
-                player2.x -= tileSize;
-                player2.jCol = floor(player2.x / tileSize);
-                colorManager.changeTileColor(player2.iRow, player2.jCol, false);
-                // TODO check overlap with player 1
-                // TODO play sfx
-            }
-            else if (
-                evt.key === "d" && 
-                maze.tiles[player2.iRow][player2.jCol + 1].type !== MazeTileMap.WALL &&
-                maze.tiles[player2.iRow][player2.jCol + 1].type !== MazeTileMap.NEW_WALL &&
-                maze.tiles[player2.iRow][player2.jCol + 1].b > 0
-            ) {
-                player2.x += tileSize;
-                player2.jCol = floor(player2.x / tileSize);
-                colorManager.changeTileColor(player2.iRow, player2.jCol, false);
-                // TODO check overlap with player 1
-                // TODO play sfx
-            }
+        }
+    }
+}
+
+/**
+ * Moves a player to a new tile
+ * @param {*} player Which player is moved
+ * @param {boolean} isIRow If the new tile is along the current row or not
+ * @param {boolean} isPlayer1 Whether player 1 is being moved or not
+ */
+function movePlayer(player, isIRow, isPlayer1) {
+    if (isIRow) {
+        player.iRow = floor(player.y / tileSize);
+    }
+    else {
+        player.jCol = floor(player.x / tileSize);
+    }
+
+    colorManager.changeTileColor(player.iRow, player.jCol, isPlayer1);
+    checkPlayerOverlap(isPlayer1);
+    // TODO play sfx
+}
+
+/**
+ * Checks whether a player overlaps the other and manages the outcome
+ * @param {boolean} isPlayer1 If player 1 is the one initiating the check
+ */
+function checkPlayerOverlap(isPlayer1) {
+    if (player1.iRow === player2.iRow && player1.jCol === player2.jCol) {
+        if (isPlayer1 && !player2.isStunned) {
+            player2.isStunned = true;
+            player2.stunStartFrameCount = frameCount;
+        }
+        else if (!isPlayer1 && !player1.isStunned) {
+            player1.isStunned = true;
+            player1.stunStartFrameCount = frameCount;
         }
     }
 }
