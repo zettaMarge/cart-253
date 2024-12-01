@@ -538,8 +538,9 @@ function checkGameInput(evt) {
         resetMazes();
     }
     else {
+        // Player 1 movement
         if (!player1.isStunned) {
-            if (
+            if ( // Up
                 evt.key === "ArrowUp" && 
                 maze.tiles[player1.iRow - 1][player1.jCol].type !== MazeTileMap.WALL &&
                 maze.tiles[player1.iRow - 1][player1.jCol].type !== MazeTileMap.NEW_WALL &&
@@ -548,7 +549,7 @@ function checkGameInput(evt) {
                 player1.y -= tileSize;
                 movePlayer(player1, true, true);
             }
-            else if (
+            else if ( // Down
                 evt.key === "ArrowDown" &&
                 maze.tiles[player1.iRow + 1][player1.jCol].type !== MazeTileMap.WALL &&
                 maze.tiles[player1.iRow + 1][player1.jCol].type !== MazeTileMap.NEW_WALL &&
@@ -557,7 +558,7 @@ function checkGameInput(evt) {
                 player1.y += tileSize;
                 movePlayer(player1, true, true);
             }
-            else if (
+            else if ( // Left
                 evt.key === "ArrowLeft" && 
                 maze.tiles[player1.iRow][player1.jCol - 1].type !== MazeTileMap.WALL &&
                 maze.tiles[player1.iRow][player1.jCol - 1].type !== MazeTileMap.NEW_WALL &&
@@ -566,7 +567,7 @@ function checkGameInput(evt) {
                 player1.x -= tileSize;
                 movePlayer(player1, false, true);
             }
-            else if (
+            else if ( // Right
                 evt.key === "ArrowRight" && 
                 maze.tiles[player1.iRow][player1.jCol + 1].type !== MazeTileMap.WALL &&
                 maze.tiles[player1.iRow][player1.jCol + 1].type !== MazeTileMap.NEW_WALL &&
@@ -577,9 +578,10 @@ function checkGameInput(evt) {
             }
         }
         
+        // Player 2 movement, if it's an actual player
         if (!playAgainstCPU) {
             if (!player2.isStunned) {
-                if (
+                if ( // Up
                     evt.key === "w" && 
                     maze.tiles[player2.iRow - 1][player2.jCol].type !== MazeTileMap.WALL &&
                     maze.tiles[player2.iRow - 1][player2.jCol].type !== MazeTileMap.NEW_WALL &&
@@ -588,7 +590,7 @@ function checkGameInput(evt) {
                     player2.y -= tileSize;
                     movePlayer(player2, true, false);
                 }
-                else if (
+                else if ( // Down
                     evt.key === "s" && 
                     maze.tiles[player2.iRow + 1][player2.jCol].type !== MazeTileMap.WALL &&
                     maze.tiles[player2.iRow + 1][player2.jCol].type !== MazeTileMap.NEW_WALL &&
@@ -597,7 +599,7 @@ function checkGameInput(evt) {
                     player2.y += tileSize;
                     movePlayer(player2, true, false);
                 }
-                else if (
+                else if ( // Left
                     evt.key === "a" && 
                     maze.tiles[player2.iRow][player2.jCol - 1].type !== MazeTileMap.WALL &&
                     maze.tiles[player2.iRow][player2.jCol - 1].type !== MazeTileMap.NEW_WALL &&
@@ -606,7 +608,7 @@ function checkGameInput(evt) {
                     player2.x -= tileSize;
                     movePlayer(player2, false, false);
                 }
-                else if (
+                else if ( // Right
                     evt.key === "d" && 
                     maze.tiles[player2.iRow][player2.jCol + 1].type !== MazeTileMap.WALL &&
                     maze.tiles[player2.iRow][player2.jCol + 1].type !== MazeTileMap.NEW_WALL &&
@@ -661,7 +663,7 @@ function checkPlayerOverlap(isPlayer1) {
  */
 async function initMaze() {
     // Select a random maze
-    maze = random(mazeData.dark_mazes);
+    maze = random(mazeData.mazes);
     tileSize = height/maze.tiles.length;
 
     // Reset the players' data
