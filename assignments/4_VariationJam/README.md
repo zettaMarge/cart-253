@@ -19,4 +19,4 @@ This project uses:
 - [p5.js](https://p5js.org)
 
 ### Attribution
-TODO
+- Sound effects generated with [Jsfxr](https://sfxr.me/)

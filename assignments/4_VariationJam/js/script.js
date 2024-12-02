@@ -146,11 +146,20 @@ let tileSize;
 // The manager for changing the tiles' colors
 let colorManager = new ColorManagerFill();
 
+// Various sound effects used in the game
+let sfx = {
+    move: [],
+    stun: undefined
+};
+
 /**
  * Preloads various assets before the canvas gets initialized
  */
 function preload() {
     mazeData = loadJSON("data/mazes.json");
+    sfx.move.push(loadSound("sfx/moveA.wav"));
+    sfx.move.push(loadSound("sfx/moveB.wav"));
+    sfx.stun = loadSound("sfx/stun.wav");
 }
 
 /**
@@ -450,6 +459,8 @@ function moveCPU() {
 
             cpuTimer.lastMoveFrameCount = frameCount;
             cpuTimer.isMoving = false;
+            const moveSFX = random(sfx.move);
+            moveSFX.play();
         }
     }
 }
@@ -509,22 +520,31 @@ function checkMenuInput(evt) {
                 }
         
                 isOnMenu = false;
+                sfx.stun.play();
             }
         );
     }
     else if (evt.key === "1" && selectedVariation !== GameVariation.FILL) {
         selectedVariationColorCounter = (selectedVariationColorCounter + 1) % 4;
         selectedVariation = GameVariation.FILL;
+        const moveSFX = random(sfx.move);
+        moveSFX.play();
     }
     else if (evt.key === "2" && selectedVariation !== GameVariation.BLEND) {
         selectedVariationColorCounter = (selectedVariationColorCounter + 1) % 4;
         selectedVariation = GameVariation.BLEND;
+        const moveSFX = random(sfx.move);
+        moveSFX.play();
     }
     else if (evt.key === "3" && selectedVariation !== GameVariation.COLORBLIND) {
         selectedVariation = GameVariation.COLORBLIND;
+        const moveSFX = random(sfx.move);
+        moveSFX.play();
     }
     else if (evt.key === "c" || evt.key === "C") {
         playAgainstCPU = !playAgainstCPU;
+        const moveSFX = random(sfx.move);
+        moveSFX.play();
     }
 }
 
@@ -535,6 +555,7 @@ function checkMenuInput(evt) {
 function checkGameInput(evt) {
     if (evt.key === "Escape") {
         isOnMenu = true;
+        sfx.stun.play();
         resetMazes();
     }
     else {
@@ -638,7 +659,6 @@ function movePlayer(player, isIRow, isPlayer1) {
 
     colorManager.changeTileColor(player.iRow, player.jCol, isPlayer1);
     checkPlayerOverlap(isPlayer1);
-    // TODO play sfx
 }
 
 /**
@@ -650,10 +670,12 @@ function checkPlayerOverlap(isPlayer1) {
         if (isPlayer1 && !player2.isStunned) {
             player2.isStunned = true;
             player2.stunStartFrameCount = frameCount;
+            sfx.stun.play();
         }
         else if (!isPlayer1 && !player1.isStunned) {
             player1.isStunned = true;
             player1.stunStartFrameCount = frameCount;
+            sfx.stun.play();
         }
     }
 }
